@@ -671,7 +671,7 @@ class OpenSSLConan(ConanFile):
     def _patch_install_name(self):
         if self.settings.os == "Macos" and self.options.shared:
             old_str = '-install_name $(INSTALLTOP)/$(LIBDIR)/'
-            new_str = '-install_name '
+            new_str = '-install_name @rpath/'
 
             makefile = "Makefile" if self._full_version >= "1.1.1" else "Makefile.shared"
             tools.replace_in_file(makefile, old_str, new_str, strict=self.in_local_cache)
