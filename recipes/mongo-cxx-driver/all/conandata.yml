@@ -1,0 +1,4 @@
+sources:
+  "3.4.0-nem":
+    sha256: 0e584da2ac78116fd64f03df3b64914af583eaea461ee5eed7e3c9267d8145e4
+    url: https://github.com/nemtech/mongo-cxx-driver/archive/r3.4.0-nem.tar.gz
