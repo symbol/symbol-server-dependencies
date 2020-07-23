@@ -34,6 +34,9 @@ class MongoCxxConan(ConanFile):
 
         cmake.definitions["CMAKE_CXX_STANDARD"] = "17"
 
+        if self.settings.compiler == "Visual Studio":
+            cmake.definitions["CMAKE_CXX_FLAGS"] = "/Zc:__cplusplus"
+
         cmake.configure()
         return cmake
 
