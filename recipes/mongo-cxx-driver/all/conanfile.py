@@ -50,15 +50,8 @@ class MongoCxxConan(ConanFile):
         cmake.build()
 
     def package(self):
-        self.copy(pattern="LICENSE*", src=self._source_subfolder)
-        self.copy(pattern="*.hpp", dst="include/bsoncxx", src=self._source_subfolder + "/src/bsoncxx", keep_path=True)
-        self.copy(pattern="*.hpp", dst="include/mongocxx", src=self._source_subfolder + "/src/mongocxx", keep_path=True)
-        self.copy(pattern="*.dll", dst="bin", src="bin", keep_path=False)
-        self.copy(pattern="lib*cxx.lib", dst="lib", src="lib", keep_path=False)
-        self.copy(pattern="lib*cxx.a", dst="lib", src="lib", keep_path=False)
-        self.copy(pattern="lib*cxx.so*", dst="lib", src="lib", keep_path=False)
-        self.copy(pattern="lib*cxx.dylib", dst="lib", src="lib", keep_path=False)
-        self.copy(pattern="lib*cxx._noabi.dylib", dst="lib", src="lib", keep_path=False)
+        cmake = self._configure_cmake()
+        cmake.install()
 
     def package_info(self):
         self.cpp_info.libs = ['mongocxx', 'bsoncxx']
