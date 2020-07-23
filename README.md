@@ -1,1 +1,1 @@
-# catapult-server-dep-benchmark
+# symbol-server-dependencies
