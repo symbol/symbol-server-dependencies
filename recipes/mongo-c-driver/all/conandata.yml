@@ -1,0 +1,4 @@
+sources:
+  "1.15.3":
+    sha256: a09b871339ea15508baedd7777d7eaec13af962b4351e2fb2e19278d7313e049
+    url: https://github.com/mongodb/mongo-c-driver/releases/download/1.15.3/mongo-c-driver-1.15.3.tar.gz
