@@ -6,9 +6,9 @@ import os
 class MongoCDriverConan(ConanFile):
     name = "mongo-c-driver"
     version = "1.15.3"
-    description = "A microbenchmark support library."
-    topics = ("conan", "benchmark", "google", "microbenchmark")
-    url = "https://github.com/nemtech/catapult-server-dep-benchmark"
+    description = "A high-performance MongoDB driver for C"
+    topics = ("conan", "mongoc", "libmongoc", "mongodb")
+    url = "https://github.com/nemtech/symbol-server-dependencies.git",
     homepage = "https://github.com/mongodb/mongo-c-driver"
     license = "Apache-2.0"
     exports_sources = ["CMakeLists.txt"]
@@ -72,25 +72,25 @@ class MongoCDriverConan(ConanFile):
         cmake = self._configure_cmake()
         cmake.install()
 
-        def package_info(self):
-            if self.options.shared:
-                self.cpp_info.libs = ['mongoc-1.0', 'bson-1.0']
-            else:
-                self.cpp_info.libs = ['mongoc-static-1.0', 'bson-static-1.0']
+    def package_info(self):
+        if self.options.shared:
+            self.cpp_info.libs = ['mongoc-1.0', 'bson-1.0']
+        else:
+            self.cpp_info.libs = ['mongoc-static-1.0', 'bson-static-1.0']
 
-            self.cpp_info.includedirs = [os.path.join("include", "libmongoc-1.0"), os.path.join("include", "libbson-1.0")]
+        self.cpp_info.includedirs = [os.path.join("include", "libmongoc-1.0"), os.path.join("include", "libbson-1.0")]
 
-            if tools.os_info.is_macos:
-                self.cpp_info.frameworks.extend(['CoreFoundation', 'Security'])
+        if tools.os_info.is_macos:
+            self.cpp_info.frameworks.extend(['CoreFoundation', 'Security'])
 
-            if tools.os_info.is_linux:
-                self.cpp_info.system_libs.extend(["rt", "pthread", "dl"])
+        if tools.os_info.is_linux:
+            self.cpp_info.system_libs.extend(["rt", "pthread", "dl"])
 
-            if not self.options.shared:
-                self.cpp_info.defines.extend(['BSON_STATIC=1', 'MONGOC_STATIC=1'])
+        if not self.options.shared:
+            self.cpp_info.defines.extend(['BSON_STATIC=1', 'MONGOC_STATIC=1'])
 
-                if tools.os_info.is_linux or tools.os_info.is_macos:
-                    self.cpp_info.system_libs.append('resolv')
+            if tools.os_info.is_linux or tools.os_info.is_macos:
+                self.cpp_info.system_libs.append('resolv')
 
-                if tools.os_info.is_windows:
-                    self.cpp_info.system_libs.extend(['ws2_32.lib', 'secur32.lib', 'crypt32.lib', 'BCrypt.lib', 'Dnsapi.lib'])
+            if tools.os_info.is_windows:
+                self.cpp_info.system_libs.extend(['ws2_32.lib', 'secur32.lib', 'crypt32.lib', 'BCrypt.lib', 'Dnsapi.lib'])
