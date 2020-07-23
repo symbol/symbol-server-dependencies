@@ -58,6 +58,9 @@ class MongoCDriverConan(ConanFile):
             cmake.definitions["CMAKE_SHARED_LINKER_FLAGS"] = "-ldl"
             cmake.definitions["CMAKE_EXE_LINKER_FLAGS"] = "-ldl"
 
+        if self.settings.compiler == "Visual Studio":
+            cmake.definitions["ENABLE_EXTRA_ALIGNMENT"] = "OFF"
+
         cmake.configure(build_folder=self._build_subfolder)
         return cmake
 
