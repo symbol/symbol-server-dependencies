@@ -5,9 +5,10 @@ import os
 
 class BenchmarkConan(ConanFile):
     name = "benchmark"
+    version = "1.5.0"
     description = "A microbenchmark support library."
     topics = ("conan", "benchmark", "google", "microbenchmark")
-    url = "https://github.com/conan-io/conan-center-index/"
+    url = "https://github.com/nemtech/catapult-server-dep-benchmark"
     homepage = "https://github.com/google/benchmark"
     license = "Apache-2.0"
     exports_sources = ["CMakeLists.txt"]
@@ -74,7 +75,7 @@ class BenchmarkConan(ConanFile):
 
         self.copy(pattern="LICENSE", dst="licenses", src=self._source_subfolder)
         tools.rmdir(os.path.join(self.package_folder, 'lib', 'pkgconfig'))
-        tools.rmdir(os.path.join(self.package_folder, 'lib', 'cmake'))
+        #tools.rmdir(os.path.join(self.package_folder, 'lib', 'cmake'))
 
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
