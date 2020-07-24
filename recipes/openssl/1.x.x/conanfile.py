@@ -67,7 +67,6 @@ class OpenSSLConan(ConanFile):
     topics = ("conan", "openssl", "ssl", "tls", "encryption", "security")
     description = "A toolkit for the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) protocols"
     options = {"no_threads": [True, False],
-               "no_zlib": [True, False],
                "shared": [True, False],
                "fPIC": [True, False],
                "no_asm": [True, False],
@@ -79,12 +78,9 @@ class OpenSSLConan(ConanFile):
                "no_dh": [True, False],
                "no_dsa": [True, False],
                "no_hmac": [True, False],
-               "no_md2": [True, False],
                "no_md5": [True, False],
                "no_mdc2": [True, False],
                "no_rc2": [True, False],
-               "no_rc4": [True, False],
-               "no_rc5": [True, False],
                "no_rsa": [True, False],
                "no_sha": [True, False],
                "no_async": [True, False],
@@ -100,12 +96,6 @@ class OpenSSLConan(ConanFile):
     exports_sources = ['patches/*']
 
     def config_options(self):
-        if self._full_version >= "1.1.0":
-              del self.options.no_md2
-              del self.options.no_rc4
-              del self.options.no_rc5
-              del self.options.no_zlib
-
         if self.settings.os != "Windows":
             del self.options.capieng_dialog
             del self.options.enable_capieng
@@ -163,13 +153,10 @@ class OpenSSLConan(ConanFile):
 
 
     def requirements(self):
-        if self._full_version < "1.1.0" and self.options.get_safe("no_zlib") == False:
-            self.requires("zlib/1.2.11")
+        pass
 
     @property
     def _target_prefix(self):
-        if self._full_version < "1.1.0" and self.settings.build_type == "Debug":
-            return "debug-"
         return ""
 
     @property
@@ -239,11 +226,10 @@ class OpenSSLConan(ConanFile):
     @property
     def _targets(self):
         is_cygwin = self.settings.get_safe("os.subsystem") == "cygwin"
-        is_1_0 = self._full_version < "1.1.0"
         return {
-            "Linux-x86-clang": ("%slinux-generic32" % self._target_prefix) if is_1_0 else "linux-x86-clang",
-            "Linux-x86_64-clang": ("%slinux-x86_64" % self._target_prefix) if is_1_0 else "linux-x86_64-clang",
-            "Linux-x86-*": ("%slinux-generic32" % self._target_prefix) if is_1_0 else "linux-x86",
+            "Linux-x86-clang": "linux-x86-clang",
+            "Linux-x86_64-clang": "linux-x86_64-clang",
+            "Linux-x86-*": "linux-x86",
             "Linux-x86_64-*": "%slinux-x86_64" % self._target_prefix,
             "Linux-armv4-*": "linux-armv4",
             "Linux-armv4i-*": "linux-armv4",
@@ -416,19 +402,16 @@ class OpenSSLConan(ConanFile):
         prefix = tools.unix_path(self.package_folder) if self._win_bash else self.package_folder
         openssldir = tools.unix_path(openssldir) if self._win_bash else openssldir
         args = [
-          '"%s"' % (self._target if self._full_version >= "1.1.0" else self._ancestor_target),
+          '"%s"' % (self._target),
           "shared" if self.options.shared else "no-shared",
                 "--prefix=\"%s\"" % prefix,
                 "--openssldir=\"%s\"" % openssldir,
           "no-unit-test",
           "no-threads" if self.options.no_threads else "threads"
         ]
-        if self._full_version >= "1.1.1":
-            args.append("PERL=%s" % self._perl)
-        if self._full_version < "1.1.0" or self._full_version >= "1.1.1":
-            args.append("no-tests")
-        if self._full_version >= "1.1.0":
-            args.append("--debug" if self.settings.build_type == "Debug" else "--release")
+        args.append("PERL=%s" % self._perl)
+        args.append("no-tests")
+        args.append("--debug" if self.settings.build_type == "Debug" else "--release")
 
         if self.settings.os == "tvOS":
             args.append(" -DNO_FORK") # fork is not available on tvOS
@@ -445,30 +428,6 @@ class OpenSSLConan(ConanFile):
             args.append("-fPIC" if self.options.fPIC else "no-pic")
         if self.settings.os == "Neutrino":
             args.append("-lsocket no-asm")
-
-        if self._full_version < "1.1.0":
-            if self.options.get_safe("no_zlib"):
-                args.append("no-zlib")
-            else:
-                zlib_info = self.deps_cpp_info["zlib"]
-                include_path = zlib_info.include_paths[0]
-                if self.settings.os == "Windows":
-                    lib_path = "%s/%s.lib" % (zlib_info.lib_paths[0], zlib_info.libs[0])
-                else:
-                    lib_path = zlib_info.lib_paths[0]  # Just path, linux will find the right file
-                if tools.os_info.is_windows:
-                    # clang-cl doesn't like backslashes in #define CFLAGS (builldinf.h -> cversion.c)
-                    include_path = include_path.replace('\\', '/')
-                    lib_path = lib_path.replace('\\', '/')
-
-                if zlib_info.shared:
-                  args.append("zlib-dynamic")
-                else:
-                  args.append("zlib")
-
-                args.extend(['--with-zlib-include="%s"' % include_path,
-                             '--with-zlib-lib="%s"' % lib_path])
-
 
         for option_name in self.options.values.fields:
             activated = getattr(self.options, option_name)
@@ -516,7 +475,7 @@ class OpenSSLConan(ConanFile):
         defines = " ".join(env_build.defines)
         defines = 'defines => add("%s"),' % defines if defines else ""
         ranlib = 'ranlib => "%s",' % ranlib if ranlib else ""
-        targets = "my %targets" if self._full_version >= "1.1.1" else "%targets"
+        targets = "my %targets"
         includes = ", ".join(['"%s"' % include for include in env_build.include_paths])
         if self.settings.os == "Windows":
             includes = includes.replace('\\', '/') # OpenSSL doesn't like backslashes
@@ -551,10 +510,6 @@ class OpenSSLConan(ConanFile):
         if targets:
             command.extend(targets)
         if not self._use_nmake:
-            # workaround for random error: size too large (archive member extends past the end of the file)
-            # /Library/Developer/CommandLineTools/usr/bin/ar: internal ranlib command failed
-            if self.settings.os == "Macos" and self._full_version < "1.1.0":
-                parallel = False
             command.append(("-j%s" % tools.cpu_count()) if parallel else "-j1")
         self.run(" ".join(command), win_bash=self._win_bash)
 
@@ -577,28 +532,14 @@ class OpenSSLConan(ConanFile):
             args = " ".join(self._configure_args)
             self.output.info(self._configure_args)
 
-            if self._use_nmake and self._full_version >= "1.1.0":
+            if self._use_nmake:
                 self._replace_runtime_in_file(os.path.join("Configurations", "10-main.conf"))
 
             self.run('{perl} ./Configure {args}'.format(perl=self._perl, args=args), win_bash=self._win_bash)
 
             self._patch_install_name()
 
-            if self._use_nmake and self._full_version < "1.1.0":
-                if not self.options.no_asm and self.settings.arch == "x86":
-                    self.run(r"ms\do_nasm")
-                else:
-                    self.run(r"ms\do_ms" if self.settings.arch == "x86" else r"ms\do_win64a")
-
-                self._replace_runtime_in_file(os.path.join("ms", "nt.mak"))
-                self._replace_runtime_in_file(os.path.join("ms", "ntdll.mak"))
-                if self.settings.arch == "x86":
-                    tools.replace_in_file(os.path.join("ms", "nt.mak"), "-WX", "")
-                    tools.replace_in_file(os.path.join("ms", "ntdll.mak"), "-WX", "")
-
-                self._run_make(makefile=self._nmake_makefile)
-            else:
-                self._run_make()
+            self._run_make()
 
     def _make_install(self):
         with tools.chdir(self._source_subfolder):
@@ -606,10 +547,7 @@ class OpenSSLConan(ConanFile):
             if not os.path.isdir(os.path.join(self.package_folder, "bin")):
                 os.makedirs(os.path.join(self.package_folder, "bin"))
 
-            if self._use_nmake and self._full_version < "1.1.0":
-                self._run_make(makefile=self._nmake_makefile, targets=["install"], parallel=False)
-            else:
-                self._run_make(targets=["install_sw"], parallel=False)
+            self._run_make(targets=["install_sw"], parallel=False)
 
     @property
     def _cc(self):
@@ -628,9 +566,6 @@ class OpenSSLConan(ConanFile):
     def build(self):
         with tools.vcvars(self.settings) if self._use_nmake else tools.no_op():
             env_vars = {"PERL": self._perl}
-            if self._full_version < "1.1.0":
-                cflags = " ".join(self._get_env_build().flags)
-                env_vars["CC"] = "%s %s" % (self._cc, cflags)
             if self.settings.compiler == "apple-clang":
                 xcrun = tools.XCRun(self.settings)
                 env_vars["CROSS_SDK"] = os.path.basename(xcrun.sdk_path)
@@ -676,7 +611,7 @@ class OpenSSLConan(ConanFile):
             old_str = '-install_name $(INSTALLTOP)/$(LIBDIR)/'
             new_str = '-install_name @rpath/'
 
-            makefile = "Makefile" if self._full_version >= "1.1.1" else "Makefile.shared"
+            makefile = "Makefile"
             tools.replace_in_file(makefile, old_str, new_str, strict=self.in_local_cache)
 
     def _replace_runtime_in_file(self, filename):
@@ -693,16 +628,10 @@ class OpenSSLConan(ConanFile):
                 if fnmatch.fnmatch(filename, "*.pdb"):
                     os.unlink(os.path.join(self.package_folder, root, filename))
         if self._use_nmake:
-            if self.settings.build_type == 'Debug' and self._full_version >= "1.1.0":
+            if self.settings.build_type == 'Debug':
                 with tools.chdir(os.path.join(self.package_folder, 'lib')):
                     os.rename('libssl.lib', 'libssld.lib')
                     os.rename('libcrypto.lib', 'libcryptod.lib')
-        # Old OpenSSL version family has issues with permissions.
-        # See https://github.com/conan-io/conan/issues/5831
-        if self._full_version < "1.1.0" and self.options.shared and self.settings.os in ("Android", "FreeBSD", "Linux"):
-            with tools.chdir(os.path.join(self.package_folder, "lib")):
-                os.chmod("libssl.so.1.0.0", 0o755)
-                os.chmod("libcrypto.so.1.0.0", 0o755)
 
         if self.options.shared:
             libdir = os.path.join(self.package_folder, "lib")
@@ -719,20 +648,13 @@ class OpenSSLConan(ConanFile):
         self.cpp_info.names["cmake_find_package_multi"] = "OpenSSL"
         if self._use_nmake:
             libsuffix = "d" if self.settings.build_type == "Debug" else ""
-            if self._full_version < "1.1.0":
-                self.cpp_info.components["ssl"].libs = ["ssleay32"]
-                self.cpp_info.components["crypto"].libs = ["libeay32"]
-            else:
-                self.cpp_info.components["ssl"].libs = ["libssl" + libsuffix]
-                self.cpp_info.components["crypto"].libs = ["libcrypto" + libsuffix]
+            self.cpp_info.components["ssl"].libs = ["libssl" + libsuffix]
+            self.cpp_info.components["crypto"].libs = ["libcrypto" + libsuffix]
         else:
             self.cpp_info.components["ssl"].libs = ["ssl"]
             self.cpp_info.components["crypto"].libs = ["crypto"]
  
         self.cpp_info.components["ssl"].requires = ["crypto"]
-
-        if self._full_version < "1.1.0" and not self.options.get_safe("no_zlib"):
-            self.cpp_info.components["crypto"].requires = ["zlib::zlib"]
 
         if self.settings.os == "Windows":
             self.cpp_info.components["crypto"].system_libs.extend(["crypt32", "ws2_32", "advapi32", "user32"])
