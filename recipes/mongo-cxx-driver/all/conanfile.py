@@ -1,4 +1,5 @@
 from conans import ConanFile, CMake, tools
+from conans.errors import ConanInvalidConfiguration
 import os
 
 class MongoCxxConan(ConanFile):
@@ -25,6 +26,13 @@ class MongoCxxConan(ConanFile):
 
         extracted_dir = self.name + "-r" + self.version
         os.rename(extracted_dir, self._source_subfolder)
+
+    def config_options(self):
+        if self.settings.os == "Windows":
+            if self.settings.compiler == "Visual Studio" and tools.Version(self.settings.compiler.version.value) < 15:
+                raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
+
+            del self.options.fPIC
 
     def configure(self):
         pass

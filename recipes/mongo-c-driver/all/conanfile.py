@@ -33,6 +33,9 @@ class MongoCDriverConan(ConanFile):
 
     def config_options(self):
         if self.settings.os == "Windows":
+            if self.settings.compiler == "Visual Studio" and tools.Version(self.settings.compiler.version.value) < 15:
+                raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
+
             del self.options.fPIC
 
     def configure(self):

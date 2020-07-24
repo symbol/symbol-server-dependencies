@@ -110,6 +110,9 @@ class OpenSSLConan(ConanFile):
             del self.options.capieng_dialog
             del self.options.enable_capieng
         else:
+            if self.settings.compiler == "Visual Studio" and tools.Version(self.settings.compiler.version.value) < 15:
+                raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
+
             del self.options.fPIC
 
     def build_requirements(self):
