@@ -11,7 +11,7 @@ class CppZmqConan(ConanFile):
     url = "https://github.com/nemtech/symbol-server-dependencies.git",
     homepage = "https://github.com/zeromq/cppzmq"
     license = "MIT"
-    exports_sources = "CMakeLists.txt", "patches/**"
+    exports_sources = "CMakeLists.txt", "patches/*.patch"
     generators = "cmake", "cmake_find_package"
 
     settings = "os", "compiler", "build_type", "arch"

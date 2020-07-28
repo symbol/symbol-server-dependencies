@@ -46,8 +46,6 @@ class ZeroMQConan(ConanFile):
 
     def _configure_cmake(self):
         cmake = CMake(self)
-
-        cmake = CMake(self)
         cmake.definitions["ZMQ_BUILD_TESTS"] = False
         cmake.definitions["WITH_PERF_TOOL"] = False
         cmake.definitions["BUILD_SHARED"] = self.options.shared
