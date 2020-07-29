@@ -1,3 +1,8 @@
+## patch, patches ZeroMq cmake, so that it:
+##  * checks properly that there's a conan cmake zeromq target
+##  * links with libzmq (shared) so that doing find_package(cppzmq) should define libzmq target
+##
+
 from conans import ConanFile, CMake, tools
 from conans.errors import ConanInvalidConfiguration
 import os
