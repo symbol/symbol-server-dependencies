@@ -9,7 +9,6 @@ import shutil
 
 class RocksDB(ConanFile):
     name = "rocksdb"
-    version = "6.11.4"
     description = "A library that provides an embeddable, persistent key-value store for fast storage"
     topics = ("conan", "rocksdb", "database", "leveldb", "facebook", "key-value")
     homepage = "https://github.com/facebook/rocksdb"

@@ -5,7 +5,6 @@ import os
 
 class MongoCDriverConan(ConanFile):
     name = "mongo-c-driver"
-    version = "1.17.0"
     description = "A high-performance MongoDB driver for C"
     topics = ("conan", "mongoc", "libmongoc", "mongodb")
     url = "https://github.com/nemtech/symbol-server-dependencies.git",

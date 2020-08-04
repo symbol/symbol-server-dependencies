@@ -5,7 +5,6 @@ import os
 
 class ZeroMQConan(ConanFile):
     name = "zeromq"
-    version = "4.3.2"
     description = "ZeroMQ is a community of projects focused on decentralized messaging and computing"
     topics = ("conan", "zmq", "libzmq", "message-queue", "asynchronous")
     url = "https://github.com/nemtech/symbol-server-dependencies.git",
