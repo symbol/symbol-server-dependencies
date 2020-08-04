@@ -2,3 +2,5 @@
 versions:
   "6.6.4-nem":
     folder: all
+  "6.11.4":
+    folder: all
