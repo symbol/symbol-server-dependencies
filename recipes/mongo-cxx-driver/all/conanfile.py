@@ -4,7 +4,6 @@ import os
 
 class MongoCxxConan(ConanFile):
     name = "mongo-cxx-driver"
-    version = "3.6.0"
     description = "C++ Driver for MongoDB"
     topics = ("conan", "mongocxx", "libmongocxx", "mongodb", "cpp")
     url = "https://github.com/nemtech/symbol-server-dependencies.git",
