@@ -56,6 +56,7 @@ class MongoCDriverConan(ConanFile):
         cmake.definitions["ENABLE_SRV"] = "OFF"
         cmake.definitions["ENABLE_ZLIB"] = "OFF"
         cmake.definitions["ENABLE_ZSTD"] = "OFF"
+        cmake.definitions["ENABLE_MONGODB_AWS_AUTH"] = "OFF"
 
         if tools.os_info.is_linux:
             cmake.definitions["CMAKE_SHARED_LINKER_FLAGS"] = "-ldl"
