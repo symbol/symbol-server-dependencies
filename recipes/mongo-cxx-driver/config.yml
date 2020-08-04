@@ -1,3 +1,5 @@
 versions:
   "r3.4.0-nem":
     folder: all
+  "r3.6.0":
+    folder: all

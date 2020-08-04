@@ -4,11 +4,11 @@ import os
 
 class MongoCxxConan(ConanFile):
     name = "mongo-cxx-driver"
-    version = "3.4.0-nem"
+    version = "3.6.0"
     description = "C++ Driver for MongoDB"
     topics = ("conan", "mongocxx", "libmongocxx", "mongodb", "cpp")
     url = "https://github.com/nemtech/symbol-server-dependencies.git",
-    homepage = "https://github.com/nemtech/mongo-cxx-driver"
+    homepage = "https://github.com/mongodb/mongo-cxx-driver"
     license = "Apache-2.0"
     exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
@@ -19,7 +19,7 @@ class MongoCxxConan(ConanFile):
 
     _source_subfolder = "source_subfolder"
 
-    requires = 'mongo-c-driver/[~=1.15]@nemtech/stable'
+    requires = 'mongo-c-driver/[~=1.17]@nemtech/stable'
 
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
@@ -41,6 +41,7 @@ class MongoCxxConan(ConanFile):
         cmake = CMake(self)
 
         cmake.definitions["CMAKE_CXX_STANDARD"] = "17"
+        cmake.definitions["BUILD_VERSION"] = "3.6.0"
 
         if self.settings.compiler == "Visual Studio":
             cmake.definitions["CMAKE_CXX_FLAGS"] = "/Zc:__cplusplus"
