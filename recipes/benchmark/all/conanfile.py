@@ -5,7 +5,7 @@ import os
 
 class BenchmarkConan(ConanFile):
     name = "benchmark"
-    version = "1.5.0"
+    version = "1.5.1"
     description = "A microbenchmark support library."
     topics = ("conan", "benchmark", "google", "microbenchmark")
     url = "https://github.com/nemtech/catapult-server-dep-benchmark"
