@@ -46,7 +46,7 @@ class MongoCDriverConan(ConanFile):
 
         cmake.definitions["ENABLE_TESTS"] = "OFF"
         cmake.definitions["ENABLE_EXAMPLES"] = "OFF"
-        cmake.definitions["ENABLE_AUTOMATIC_INIT_AND_CLEANUP"] = "OFF" if self.options.enable_automatic_init_and_cleanup else "ON"
+        cmake.definitions["ENABLE_AUTOMATIC_INIT_AND_CLEANUP"] = "ON" if self.options.enable_automatic_init_and_cleanup else "OFF"
         cmake.definitions["ENABLE_BSON"] = "ON"
         cmake.definitions["ENABLE_SASL"] = "OFF"
         cmake.definitions["ENABLE_STATIC"] = "OFF" if self.options.shared else "ON"
