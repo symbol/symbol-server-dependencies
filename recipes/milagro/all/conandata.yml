@@ -1,0 +1,4 @@
+sources:
+  "2.0.1":
+    url: https://github.com/apache/incubator-milagro-crypto-c/archive/2.0.1.tar.gz
+    sha256: 48fc7e0d7ad5edbfe8a779dc56f28813c25798ddfd60f1d94ccf1203eacd5645
