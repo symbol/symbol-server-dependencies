@@ -30,7 +30,7 @@ class ApacheMilagro(ConanFile):
 
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
-    
+
     def config_options(self):
         if self.settings.os == "Windows":
             if self.settings.compiler == "Visual Studio" and tools.Version(self.settings.compiler.version.value) < 15:
@@ -45,9 +45,13 @@ class ApacheMilagro(ConanFile):
     def configure(self):
         if self.settings.arch not in ["x86_64"]:
             raise ConanInvalidConfiguration("'Symbol' packages support only x64 arch")
-
+    
     def _configure_cmake(self):
         cmake = CMake(self)
+
+        # hack, force Release, due to check inside milagro cmakelists file
+        if self.settings.os == "Windows" and self.settings.compiler == "Visual Studio":
+            cmake.definitions["CMAKE_BUILD_TYPE"] = 'Release'
 
         cmake.definitions["BUILD_TESTING"] = False
         cmake.definitions["BUILD_PYTHON"] = False
@@ -68,8 +72,7 @@ class ApacheMilagro(ConanFile):
         cmake.build()
 
     def package(self):
-        self.copy("COPYING", dst="licenses", src=self._source_subfolder)
-        self.copy("LICENSE*", dst="licenses", src=self._source_subfolder)
+        self.copy("LICENSE", dst="licenses", src=self._source_subfolder)
         cmake = self._configure_cmake()
         cmake.install()
 
