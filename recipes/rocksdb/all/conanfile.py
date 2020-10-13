@@ -67,7 +67,7 @@ class RocksDB(ConanFile):
 
     def configure(self):
         if self.settings.arch not in ["x86_64"]:
-            raise ConanInvalidConfiguration("'Sumbol' packages support only x64 arch")
+            raise ConanInvalidConfiguration("'Symbol' packages support only x64 arch")
 
         if self.settings.build_type == "Debug":
             self.options.use_rtti = True  # Rtti are used in asserts for debug mode...

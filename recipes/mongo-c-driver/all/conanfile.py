@@ -12,6 +12,7 @@ class MongoCDriverConan(ConanFile):
     license = "Apache-2.0"
     exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
+    short_paths = True
 
     settings = "arch", "build_type", "compiler", "os"
     options = {
