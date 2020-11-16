@@ -8,3 +8,7 @@ sources:
   "3.6.0-nem":
     sha256: 579b783edb1dc93f5548e50341938f11d501c624bfb9f27a72650cfd19227974
     url: https://github.com/nemtech/mongo-cxx-driver/archive/r3.6.0-nem.tar.gz
+  "3.6.1":
+    sha256: c6d1b307f7b074d178c4a815d8739195fb4d7870701064bdad6f1f2360ae0af9
+    url: https://github.com/mongodb/mongo-cxx-driver/archive/r3.6.1.tar.gz
+
