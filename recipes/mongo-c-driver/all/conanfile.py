@@ -25,6 +25,10 @@ class MongoCDriverConan(ConanFile):
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
 
+    def requirements(self):
+        if self.settings.os == "Linux":
+            self.requires("openssl/1.1.1g@nemtech/stable")
+
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
 
