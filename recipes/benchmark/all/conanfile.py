@@ -26,9 +26,9 @@ class BenchmarkConan(ConanFile):
     _build_subfolder = "build_subfolder"
 
     def source(self):
-        tools.get(**self.conan_data["sources"][self.version])
-
         extracted_dir = self.name + "-" + self.version
+        git = tools.Git(folder=extracted_dir)
+        git.clone("https://github.com/google/benchmark.git", "v" + self.version)
         os.rename(extracted_dir, self._source_subfolder)
 
     def config_options(self):

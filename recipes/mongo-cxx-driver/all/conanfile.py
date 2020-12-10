@@ -22,7 +22,6 @@ class MongoCxxConan(ConanFile):
 
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
-
         extracted_dir = self.name + "-r" + self.version
         os.rename(extracted_dir, self._source_subfolder)
 
@@ -40,7 +39,7 @@ class MongoCxxConan(ConanFile):
         cmake = CMake(self)
 
         cmake.definitions["CMAKE_CXX_STANDARD"] = "17"
-        cmake.definitions["BUILD_VERSION"] = "3.6.0"
+        cmake.definitions["BUILD_VERSION"] = self.version
 
         if self.settings.compiler == "Visual Studio":
             cmake.definitions["CMAKE_CXX_FLAGS"] = "/Zc:__cplusplus"
