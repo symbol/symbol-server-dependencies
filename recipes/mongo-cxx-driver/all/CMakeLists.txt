@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.14)
 project(cmake_wrapper)
 
 if(EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
