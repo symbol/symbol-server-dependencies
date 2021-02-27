@@ -58,17 +58,11 @@ class RocksDB(ConanFile):
 
             del self.options.fPIC
 
-        if self.settings.arch != "x86_64":
-            del self.options.with_tbb
-
         minimal_cpp_standard = "11"
         if self.settings.compiler.cppstd:
             tools.check_min_cppstd(self, minimal_cpp_standard)
 
     def configure(self):
-        if self.settings.arch not in ["x86_64"]:
-            raise ConanInvalidConfiguration("'Symbol' packages support only x64 arch")
-
         if self.settings.build_type == "Debug":
             self.options.use_rtti = True  # Rtti are used in asserts for debug mode...
 
