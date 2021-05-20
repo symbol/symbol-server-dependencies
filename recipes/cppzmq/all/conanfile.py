@@ -21,7 +21,7 @@ class CppZmqConan(ConanFile):
 
     settings = "os", "compiler", "build_type", "arch"
 
-    requires = "zeromq/4.3.2@nemtech/stable"
+    requires = "zeromq/4.3.4@nemtech/stable"
 
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
