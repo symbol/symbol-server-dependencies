@@ -1,10 +1,4 @@
 sources:
-  "6.6.4-nem":
-    url: https://github.com/nemtech/rocksdb/archive/v6.6.4-nem.tar.gz
-    sha256: 457a1f94db810cdd4bbb2ebabe6cc8e6612933391ccd6dca266b54a27daa7640
-  "6.11.4":
-    url: https://github.com/facebook/rocksdb/archive/v6.11.4.tar.gz
-    sha256: 6793ef000a933af4a834b59b0cd45d3a03a3aac452a68ae669fb916ddd270532
-  "6.13.3":
-    url: https://github.com/facebook/rocksdb/archive/v6.13.3.tar.gz
-    sha256: b86741983c5842716128efc2eecc1a2f3bc86ba5125cf3111fb58d26fb195ff0
+  "6.20.3":
+    url: https://github.com/facebook/rocksdb/archive/v6.20.3.tar.gz
+    sha256: c6502c7aae641b7e20fafa6c2b92273d935d2b7b2707135ebd9a67b092169dca
