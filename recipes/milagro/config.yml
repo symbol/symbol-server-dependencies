@@ -1,6 +1,4 @@
 ---
 versions:
-  "2.0.1-nem":
-    folder: all
   "2.0.1":
     folder: all
