@@ -24,7 +24,7 @@ conan profile update settings.compiler.libcxx=libstdc++11 default
 ```
 
 Create the package for the recipe.
-This example uses ``benchmark`` recipe and assume's you are in the ``recipes`` folder
+This example uses ``benchmark`` recipe and assumes you are in the ``recipes`` folder
 
 ```sh
 cd benchmark/all
@@ -59,11 +59,11 @@ The packages should be created in a specific order, due to dependencies on each 
 - [git](https://git-scm.com/)
 
 There are several reasons why custom Conan packages were created for Catapult client.
-1. Support Darwin rpaths
-2. benchmark - uses download, we wanted to grab source from git (+ benchmark is actually rming cmake files for some reason, we didn't want that to happen).
-3. mongo-c - we have some hacks for VS + they mixed ENABLE_AUTOMATIC_INIT_AND_CLEANUP.
-4. mongo-cxx - VS hacks + it does some copying instead of cmake.install() in conanfile
-5. openssl - we got much cleaner conanfile as we only support 1.1.1 + some other rpath fix
-6. zmq - rpath support
-7. cppzmq - we need to patch actual cmakelist cause cppzmq cmake file is wrong
-8. rocks - rpath support
+1. The main reason was to add support rpath in Darwin OS.
+2. Benchmark was updated to get the source from git and prevent benchmark from actually removing cmake files.
+3. Mongo-c has specific changes for Visual Studio and fix the ENABLE_AUTOMATIC_INIT_AND_CLEANUP.
+4. Mongo-cxx has some customization for Visual Studio plus it was copying files instead of using cmake.install() in conanfile.
+5. Openssl has its conanfile cleaned up since we only support 1.1.1 plus rpath fix.
+6. ZeroMQ has rpath support added.
+7. Cppzmq has cmakelist file which was incorrect and this was fix.
+8. RocksDB has rpath support added.
