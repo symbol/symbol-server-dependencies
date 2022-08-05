@@ -38,7 +38,7 @@ class RocksDB(ConanFile):
         "fPIC": True,
         "enable_sse": "sse42",
 
-        "use_rtti": False,
+        "use_rtti": True,
         "with_gflags": False,
         "with_jemalloc": False,
         "with_lz4": False,

@@ -18,7 +18,7 @@ class MongoCxxConan(ConanFile):
 
     _source_subfolder = "source_subfolder"
 
-    requires = 'mongo-c-driver/[~=1.17]@nemtech/stable'
+    requires = 'mongo-c-driver/[~=1.22]@nemtech/stable'
 
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
