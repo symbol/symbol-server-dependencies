@@ -1,0 +1,4 @@
+sources:
+  3.0.7:
+    url: https://github.com/openssl/openssl/archive/refs/tags/openssl-3.0.7.tar.gz
+    sha256: e8f73590815846db286d215950fdef9b882bb6b886d50acb431c0285782fe35b
