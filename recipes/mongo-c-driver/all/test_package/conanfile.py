@@ -11,6 +11,10 @@ class TestPackageConan(ConanFile):
         cmake.configure()
         cmake.build()
 
+    def requirements(self):
+        if self.settings.os == "Linux":
+            self.requires("zlib/[~=1.2.13]")
+
     def test(self):
         if not tools.cross_building(self.settings):
             bin_path = os.path.join("bin", "test_package")
