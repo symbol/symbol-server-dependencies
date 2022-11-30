@@ -1,7 +1,7 @@
 sources:
-  "1.17.5":
-    url: https://github.com/mongodb/mongo-c-driver/releases/download/1.17.5/mongo-c-driver-1.17.5.tar.gz
-    sha256: 4b15b7e73a8b0621493e4368dc2de8a74af381823ae8f391da3d75d227ba16be
   "1.22.0":
     url: https://github.com/mongodb/mongo-c-driver/releases/download/1.22.0/mongo-c-driver-1.22.0.tar.gz
     sha256: 272067f75e7e57c98f90a6f0c42500ef818b4b085539343676b6ce6831655eaf
+  "1.23.1":
+    url: https://github.com/mongodb/mongo-c-driver/releases/download/1.23.1/mongo-c-driver-1.23.1.tar.gz
+    sha256: e1e4f59713b2e48dba1ed962bc0e52b00479b009a9ec4e5fbece61bda76a42df

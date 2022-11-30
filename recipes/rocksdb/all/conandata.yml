@@ -1,7 +1,7 @@
 sources:
-  "6.20.3":
-    url: https://github.com/facebook/rocksdb/archive/v6.20.3.tar.gz
-    sha256: c6502c7aae641b7e20fafa6c2b92273d935d2b7b2707135ebd9a67b092169dca
   "7.4.3":
     url: https://github.com/facebook/rocksdb/archive/v7.4.3.tar.gz
     sha256: ca1fedc931d2232603a84db6120b6e9158bc1f14ef113291624dc357500e48ab
+  "7.7.3":
+    url: https://github.com/facebook/rocksdb/archive/v7.7.3.tar.gz
+    sha256: b8ac9784a342b2e314c821f6d701148912215666ac5e9bdbccd93cf3767cb611

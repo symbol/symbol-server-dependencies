@@ -27,7 +27,7 @@ class MongoCDriverConan(ConanFile):
 
     def requirements(self):
         if self.settings.os == "Linux":
-            self.requires("openssl/1.1.1q@nemtech/stable")
+            self.requires("openssl/3.0.7")
 
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
