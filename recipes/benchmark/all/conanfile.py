@@ -42,6 +42,9 @@ class BenchmarkConan(ConanFile):
         if self.settings.os == "Windows" and self.options.shared:
             raise ConanInvalidConfiguration("Windows shared builds are not supported right now, see issue #639")
 
+    def is_arch_64_bit(self):
+        return "64" in str(self.settings.arch) or self.settings.arch in ["armv8", "armv8.3", "armv9"]
+
     def _configure_cmake(self):
         cmake = CMake(self)
 
@@ -57,7 +60,7 @@ class BenchmarkConan(ConanFile):
                 cmake.definitions["HAVE_POSIX_REGEX"] = False
                 cmake.definitions["HAVE_STEADY_CLOCK"] = False
             else:
-                cmake.definitions["BENCHMARK_BUILD_32_BITS"] = "ON" if "64" not in str(self.settings.arch) else "OFF"
+                cmake.definitions["BENCHMARK_BUILD_32_BITS"] = "OFF" if self.is_arch_64_bit() else "ON"
             cmake.definitions["BENCHMARK_USE_LIBCXX"] = "ON" if (str(self.settings.compiler.libcxx) == "libc++") else "OFF"
         else:
             cmake.definitions["BENCHMARK_USE_LIBCXX"] = "OFF"

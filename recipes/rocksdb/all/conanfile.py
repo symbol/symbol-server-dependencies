@@ -89,6 +89,9 @@ class RocksDB(ConanFile):
         #cmake.definitions["ROCKSDB_DLL" ] = self.settings.os == "Windows" and self.options.shared
 
         cmake.definitions["USE_RTTI"] = self.options.use_rtti
+        if "arm" in str(self.settings.arch):
+            self.options.enable_sse = "False"
+
         if self.options.enable_sse == "False":
           cmake.definitions["PORTABLE"] = True
           cmake.definitions["FORCE_SSE42"] = False
