@@ -1,5 +1,6 @@
 from conans import ConanFile, CMake, tools
 from conans.errors import ConanInvalidConfiguration
+from conan.tools.scm import Version
 import os
 
 
@@ -27,7 +28,7 @@ class MongoCDriverConan(ConanFile):
 
     def requirements(self):
         if self.settings.os == "Linux":
-            self.requires("openssl/3.0.7")
+            self.requires("openssl/3.2.0")
 
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
@@ -68,6 +69,9 @@ class MongoCDriverConan(ConanFile):
 
         if self.settings.compiler == "Visual Studio":
             cmake.definitions["ENABLE_EXTRA_ALIGNMENT"] = "OFF"
+
+        if Version(self.version) >= "1.25.0":
+            cmake.definitions["BUILD_VERSION"] = str(self.version)
 
         cmake.configure(build_folder=self._build_subfolder)
         return cmake
