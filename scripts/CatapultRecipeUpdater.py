@@ -116,13 +116,13 @@ class CatapultRecipesUpdater:
 		url = config['sources'][version]['url']
 		with tempfile.TemporaryDirectory() as tmpdir:
 			tmp_source_filepath = f'{tmpdir}/{recipe}.{version}.tar.gz'
-			dispatch_subprocess(['curl', '-LJ', url, '--output', f'{tmp_source_filepath}'])
-			output, _ = dispatch_subprocess(['sha256sum', f'{tmp_source_filepath}'], handle_error=True)
+			dispatch_subprocess(['curl', '-LJ', url, '--output', tmp_source_filepath])
+			output, _ = dispatch_subprocess(['sha256sum', tmp_source_filepath], handle_error=True)
 			config['sources'][version]['sha256'] = output.split(' ')[0]
 			with open(filepath, 'w') as output_file:
 				yaml.dump(config, output_file, sort_keys=False)
 
-	async def _update_recipe_files(self, recipe, versions, recipes_versions):
+	async def _update_recipe_files(self, recipe, versions):
 		update_recipe_files_descriptor = [
 			r'{recipe}/config.yml',
 			r'{recipe}/all/conandata.yml',
@@ -142,7 +142,7 @@ class CatapultRecipesUpdater:
 	async def update_recipes_version(self, recipes_versions):
 		print(f'updating recipes {recipes_versions}')
 		await asyncio.gather(*[
-			self._update_recipe_files(recipe, versions, recipes_versions) for recipe, versions in recipes_versions.items()
+			self._update_recipe_files(recipe, versions) for recipe, versions in recipes_versions.items()
 		])
 
 		self.recipe_helper.update_recipe_dependent_version(recipes_versions, self.source_path)
