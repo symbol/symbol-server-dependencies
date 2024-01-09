@@ -187,17 +187,20 @@ async def main():
 
 	print(f'recipes to update - {recipes_to_update}')
 	await recipes_updater.update_recipes_version(recipes_to_update)
+	update_message = '\n'.join([f'{recipe} {versions[0]} -> {versions[1]}' for recipe, versions in recipes_to_update.items()])
+
+	# commit recipe updates before doing the build.
+	if args.commit_title:
+		dispatch_subprocess(['git', 'add', '.'])
+		dispatch_subprocess(['git', 'commit', '-m', f'{args.commit_title}\n\n{update_message}'])
+
 	initialize_conan()
 	await recipes_updater.build_conan_package(recipes_to_update)
 
 	if args.upload:
 		await recipes_updater.upload_conan_package(recipes_to_update)
 
-	update_message = '\n'.join([f'{recipe} {versions[0]} -> {versions[1]}' for recipe, versions in recipes_to_update.items()])
 	print(f'updated recipe:\n{update_message}')
-	if args.commit_title:
-		dispatch_subprocess(['git', 'add', '.'])
-		dispatch_subprocess(['git', 'commit', '-m', f'{args.commit_title}\n\n{update_message}'])
 
 
 if '__main__' == __name__:
