@@ -1,0 +1,35 @@
+{
+ "graph_lock": {
+  "nodes": {
+   "0": {
+    "options": "",
+    "requires": [
+     "1"
+    ],
+    "path": "../../conanfile.py",
+    "context": "host"
+   },
+   "1": {
+    "ref": "cppzmq/4.10.0@nemtech/stable#2a03fdc79e2c9182bbecf0420b3f9a3f",
+    "options": "zeromq:shared=True",
+    "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
+    "prev": "28292f7371b57dd66c09232da757c77b",
+    "modified": true,
+    "requires": [
+     "2"
+    ],
+    "context": "host"
+   },
+   "2": {
+    "ref": "zeromq/4.3.5@nemtech/stable#e5f5d526e34fcbd208ab5b09a533918f",
+    "options": "shared=True",
+    "package_id": "9428c85bc64cf85711c31a116b265ea0dd5903a4",
+    "prev": "f7c9c0a64afb25eedc530e7500c1768a",
+    "context": "host"
+   }
+  },
+  "revisions_enabled": true
+ },
+ "version": "0.4",
+ "profile_host": "[settings]\narch=x86_64\narch_build=x86_64\nbuild_type=Release\ncompiler=gcc\ncompiler.libcxx=libstdc++11\ncompiler.version=12\nos=Linux\nos_build=Linux\n[options]\n[build_requires]\n[env]\n"
+}

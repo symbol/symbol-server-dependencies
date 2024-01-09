@@ -1,0 +1,26 @@
+{
+ "options": [
+  [
+   "benchmark:enable_exceptions",
+   "True"
+  ],
+  [
+   "benchmark:enable_lto",
+   "False"
+  ],
+  [
+   "benchmark:fPIC",
+   "True"
+  ],
+  [
+   "benchmark:shared",
+   "False"
+  ]
+ ],
+ "root": {
+  "name": null,
+  "version": null,
+  "user": "nemtech",
+  "channel": "stable"
+ }
+}

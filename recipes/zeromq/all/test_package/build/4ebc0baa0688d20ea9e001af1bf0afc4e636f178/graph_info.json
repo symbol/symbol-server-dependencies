@@ -1,0 +1,14 @@
+{
+ "options": [
+  [
+   "zeromq:shared",
+   "True"
+  ]
+ ],
+ "root": {
+  "name": null,
+  "version": null,
+  "user": "nemtech",
+  "channel": "stable"
+ }
+}

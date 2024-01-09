@@ -1,0 +1,99 @@
+[settings]
+    arch=x86_64
+    build_type=Release
+    compiler=gcc
+    compiler.libcxx=libstdc++11
+    compiler.version=12
+    os=Linux
+
+[requires]
+    mongo-c-driver/1.Y.Z
+    zlib/1.Y.Z
+
+[options]
+
+
+[full_settings]
+    arch=x86_64
+    build_type=Release
+    compiler=gcc
+    compiler.libcxx=libstdc++11
+    compiler.version=12
+    os=Linux
+
+[full_requires]
+    mongo-c-driver/1.25.4@nemtech/stable:c309df96aa623b3be9bf0f55c07001d208ddcd99
+    openssl/3.2.0:772675ace4978e609416253f5f352cadffbfbb53
+    zlib/1.2.13:2a19826344ff00be1c04403f2f8e7008ed3a7cc6
+
+[full_options]
+    mongo-c-driver:enable_automatic_init_and_cleanup=False
+    mongo-c-driver:fPIC=True
+    mongo-c-driver:shared=True
+    openssl:386=False
+    openssl:enable_weak_ssl_ciphers=False
+    openssl:fPIC=True
+    openssl:no_aria=False
+    openssl:no_asm=False
+    openssl:no_async=False
+    openssl:no_autoload_config=False
+    openssl:no_bf=False
+    openssl:no_blake2=False
+    openssl:no_camellia=False
+    openssl:no_cast=False
+    openssl:no_chacha=False
+    openssl:no_cms=False
+    openssl:no_comp=False
+    openssl:no_ct=False
+    openssl:no_deprecated=False
+    openssl:no_des=False
+    openssl:no_dgram=False
+    openssl:no_dh=False
+    openssl:no_dsa=False
+    openssl:no_dso=False
+    openssl:no_ec=False
+    openssl:no_ecdh=False
+    openssl:no_ecdsa=False
+    openssl:no_engine=False
+    openssl:no_filenames=False
+    openssl:no_fips=False
+    openssl:no_gost=False
+    openssl:no_idea=False
+    openssl:no_legacy=False
+    openssl:no_md2=True
+    openssl:no_md4=False
+    openssl:no_mdc2=False
+    openssl:no_module=False
+    openssl:no_ocsp=False
+    openssl:no_pinshared=False
+    openssl:no_rc2=False
+    openssl:no_rc4=False
+    openssl:no_rc5=False
+    openssl:no_rfc3779=False
+    openssl:no_rmd160=False
+    openssl:no_seed=False
+    openssl:no_sm2=False
+    openssl:no_sm3=False
+    openssl:no_sm4=False
+    openssl:no_sock=False
+    openssl:no_srp=False
+    openssl:no_srtp=False
+    openssl:no_sse2=False
+    openssl:no_ssl=False
+    openssl:no_ssl3=False
+    openssl:no_stdio=False
+    openssl:no_threads=False
+    openssl:no_tls1=False
+    openssl:no_ts=False
+    openssl:no_whirlpool=False
+    openssl:no_zlib=False
+    openssl:openssldir=None
+    openssl:shared=False
+    zlib:fPIC=True
+    zlib:shared=False
+
+[recipe_hash]
+
+
+[env]
+
