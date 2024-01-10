@@ -1,4 +1,4 @@
 sources:
-  "7.10.2":
-    url: https://github.com/facebook/rocksdb/archive/v7.10.2.tar.gz
-    sha256: 4619ae7308cd3d11cdd36f0bfad3fb03a1ad399ca333f192b77b6b95b08e2f78
+  8.9.1:
+    url: https://github.com/facebook/rocksdb/archive/v8.9.1.tar.gz
+    sha256: c22d2097e7aa75629612fd020499bdae0d3e321c7bc4361960c42aaf9cbd6dc1
