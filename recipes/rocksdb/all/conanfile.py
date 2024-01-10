@@ -22,7 +22,6 @@ class RocksDB(ConanFile):
     options = {
         "shared": [True, False],
         "fPIC": [True, False],
-        "enable_sse": [False, "sse42", "avx2"],
 
         "use_rtti": [True, False],
         "with_gflags": [True, False],
@@ -36,7 +35,6 @@ class RocksDB(ConanFile):
     default_options = {
         "shared": True,
         "fPIC": True,
-        "enable_sse": "sse42",
 
         "use_rtti": True,
         "with_gflags": False,
@@ -89,18 +87,9 @@ class RocksDB(ConanFile):
         #cmake.definitions["ROCKSDB_DLL" ] = self.settings.os == "Windows" and self.options.shared
 
         cmake.definitions["USE_RTTI"] = self.options.use_rtti
-        if "arm" in str(self.settings.arch):
-            self.options.enable_sse = "False"
 
-        if self.options.enable_sse == "False":
-          cmake.definitions["PORTABLE"] = True
-          cmake.definitions["FORCE_SSE42"] = False
-        elif self.options.enable_sse == "sse42":
-          cmake.definitions["PORTABLE"] = True
-          cmake.definitions["FORCE_SSE42"] = True
-        elif self.options.enable_sse == "avx2":
-          cmake.definitions["PORTABLE"] = False
-          cmake.definitions["FORCE_SSE42"] = False
+        # sse was removed https://github.com/facebook/rocksdb/pull/11419
+        cmake.definitions["PORTABLE"] = "TRUE"
 
         cmake.definitions["WITH_NUMA"] = False
 

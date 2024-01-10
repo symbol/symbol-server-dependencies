@@ -1,7 +1,4 @@
 sources:
-  "3.6.7":
-    url: https://github.com/mongodb/mongo-cxx-driver/archive/r3.6.7.tar.gz
-    sha256: a9244d3117d4029a2f039dece242eef10e34502e4600e2afa968ab53589e6de7
   "3.7.1":
     url: https://github.com/mongodb/mongo-cxx-driver/archive/r3.7.1.tar.gz
     sha256: 79f9ae3fbd960354127c8bfa3035e34df6fd436991f9298c53d60579e96552d9
