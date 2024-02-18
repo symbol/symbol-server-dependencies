@@ -1,5 +1,9 @@
-from conans import ConanFile, CMake, tools
-from conans.errors import ConanInvalidConfiguration
+from conan import ConanFile
+from conan.tools.apple import is_apple_os
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
+from conan.errors import ConanInvalidConfiguration
+from conan.tools.files import copy, get, patch
+from conan.tools.microsoft import is_msvc
 from conan.tools.scm import Version
 import os
 
@@ -11,9 +15,8 @@ class MongoCDriverConan(ConanFile):
     url = "https://github.com/nemtech/symbol-server-dependencies.git",
     homepage = "https://github.com/mongodb/mongo-c-driver"
     license = "Apache-2.0"
-    exports_sources = ["CMakeLists.txt"]
-    generators = "cmake"
     short_paths = True
+    package_type = "library"
 
     settings = "arch", "build_type", "compiler", "os"
     options = {
@@ -23,22 +26,17 @@ class MongoCDriverConan(ConanFile):
     }
     default_options = {"shared": True, "fPIC": True, "enable_automatic_init_and_cleanup": False}
 
-    _source_subfolder = "source_subfolder"
-    _build_subfolder = "build_subfolder"
-
     def requirements(self):
         if self.settings.os == "Linux":
-            self.requires("openssl/3.2.0")
+            self.requires("openssl/3.2.1")
 
     def source(self):
-        tools.get(**self.conan_data["sources"][self.version])
+        get(self, **self.conan_data["sources"][self.version], strip_root=True)
 
-        extracted_dir = self.name + "-" + self.version
-        os.rename(extracted_dir, self._source_subfolder)
 
     def config_options(self):
         if self.settings.os == "Windows":
-            if self.settings.compiler == "Visual Studio" and tools.Version(self.settings.compiler.version.value) < 15:
+            if is_msvc(self) and Version(self.settings.compiler.version.value) < 15:
                 raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
 
             del self.options.fPIC
@@ -47,65 +45,101 @@ class MongoCDriverConan(ConanFile):
         del self.settings.compiler.libcxx
         del self.settings.compiler.cppstd
 
-    def _configure_cmake(self):
-        cmake = CMake(self)
+    def generate(self):
+        tc = CMakeToolchain(self)
 
-        cmake.definitions["ENABLE_TESTS"] = "OFF"
-        cmake.definitions["ENABLE_EXAMPLES"] = "OFF"
-        cmake.definitions["ENABLE_AUTOMATIC_INIT_AND_CLEANUP"] = "ON" if self.options.enable_automatic_init_and_cleanup else "OFF"
-        cmake.definitions["ENABLE_BSON"] = "ON"
-        cmake.definitions["ENABLE_SASL"] = "OFF"
-        cmake.definitions["ENABLE_STATIC"] = "OFF" if self.options.shared else "ON"
-        cmake.definitions["ENABLE_SHM_COUNTERS"] = "OFF"
-        cmake.definitions["ENABLE_SNAPPY"] = "OFF"
-        cmake.definitions["ENABLE_SRV"] = "OFF"
-        cmake.definitions["ENABLE_ZLIB"] = "OFF"
-        cmake.definitions["ENABLE_ZSTD"] = "OFF"
-        cmake.definitions["ENABLE_MONGODB_AWS_AUTH"] = "OFF"
+        tc.cache_variables["ENABLE_TESTS"] = "OFF"
+        tc.cache_variables["ENABLE_EXAMPLES"] = "OFF"
+        tc.cache_variables["ENABLE_AUTOMATIC_INIT_AND_CLEANUP"] = "ON" if self.options.enable_automatic_init_and_cleanup else "OFF"
+        tc.cache_variables["ENABLE_BSON"] = "ON"
+        tc.cache_variables["ENABLE_SASL"] = "OFF"
+        tc.cache_variables["ENABLE_STATIC"] = "OFF" if self.options.shared else "ON"
+        tc.cache_variables["ENABLE_SHM_COUNTERS"] = "OFF"
+        tc.cache_variables["ENABLE_SNAPPY"] = "OFF"
+        tc.cache_variables["ENABLE_SRV"] = "OFF"
+        tc.cache_variables["ENABLE_ZLIB"] = "OFF"
+        tc.cache_variables["ENABLE_ZSTD"] = "OFF"
+        tc.cache_variables["ENABLE_MONGODB_AWS_AUTH"] = "OFF"
 
-        if tools.os_info.is_linux:
-            cmake.definitions["CMAKE_SHARED_LINKER_FLAGS"] = "-ldl"
-            cmake.definitions["CMAKE_EXE_LINKER_FLAGS"] = "-ldl"
+        if "Linux" == self.settings.os:
+            tc.cache_variables["CMAKE_SHARED_LINKER_FLAGS"] = "-ldl"
+            tc.cache_variables["CMAKE_EXE_LINKER_FLAGS"] = "-ldl"
 
-        if self.settings.compiler == "Visual Studio":
-            cmake.definitions["ENABLE_EXTRA_ALIGNMENT"] = "OFF"
+        if is_msvc(self):
+            tc.cache_variables["ENABLE_EXTRA_ALIGNMENT"] = "OFF"
 
         if Version(self.version) >= "1.25.0":
-            cmake.definitions["BUILD_VERSION"] = str(self.version)
+            tc.cache_variables["BUILD_VERSION"] = str(self.version)
 
-        cmake.configure(build_folder=self._build_subfolder)
-        return cmake
+        tc.generate()
+        deps = CMakeDeps(self)
+        deps.generate()
 
     def build(self):
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
+        cmake.configure()
         cmake.build()
 
     def package(self):
-        self.copy(pattern="COPYING*", dst="licenses", src=self._source_subfolder)
-        self.copy("Find*.cmake", ".", ".")
+        copy(self, pattern="COPYING*", dst="licenses", src=self.source_folder)
 
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
         cmake.install()
 
+    @property
+    def _module_subfolder(self):
+        return os.path.join("lib", "cmake")
+
+    @property
+    def _module_file_rel_path(self):
+        return os.path.join(self._module_subfolder,
+                            "conan-official-{}-variables.cmake".format(self.name))
     def package_info(self):
-        if self.options.shared:
-            self.cpp_info.libs = ['mongoc-1.0', 'bson-1.0']
-        else:
-            self.cpp_info.libs = ['mongoc-static-1.0', 'bson-static-1.0']
+        mongoc_target = "mongoc_shared" if self.options.shared else "mongoc_static"
+        self.cpp_info.set_property("cmake_file_name", "mongoc-1.0")
+        # self.cpp_info.set_property("cmake_find_mode", "both")
+        self.cpp_info.set_property("cmake_target_name", f"mongo::{mongoc_target}")
 
-        self.cpp_info.includedirs = [os.path.join("include", "libmongoc-1.0"), os.path.join("include", "libbson-1.0")]
+        # self.cpp_info.filenames["cmake_find_package"] = "mongoc-1.0"
+        # self.cpp_info.filenames["cmake_find_package_multi"] = "mongoc-1.0"
+        # self.cpp_info.names["cmake_find_package"] = "mongo"
+        # self.cpp_info.names["cmake_find_package_multi"] = "mongo"
 
-        if tools.os_info.is_macos:
-            self.cpp_info.frameworks.extend(['CoreFoundation', 'Security'])
+        # mongoc
+        self.cpp_info.components["mongoc"].set_property("cmake_file_name", "libmongoc-1.0")
+        self.cpp_info.components["mongoc"].set_property("cmake_target_name", f"mongo::{mongoc_target}")
+        self.cpp_info.components["mongoc"].set_property("pkg_config_name", "libmongoc-1.0" if self.options.shared else "libmongoc-static-1.0")
 
-        if tools.os_info.is_linux:
-            self.cpp_info.system_libs.extend(["rt", "pthread", "dl"])
+        self.cpp_info.components["mongoc"].builddirs.append(self._module_subfolder)
+        # self.cpp_info.components["mongoc"].build_modules["cmake_find_package"] = [self._module_file_rel_path]
+        # self.cpp_info.components["mongoc"].set_property("cmake_build_modules", [self._module_file_rel_path])
 
+        # self.cpp_info.components["mongoc"].names["cmake_find_package"] = mongoc_target
+        # self.cpp_info.components["mongoc"].names["cmake_find_package_multi"] = mongoc_target
+
+        self.cpp_info.components["mongoc"].includedirs = [os.path.join("include", "libmongoc-1.0")]
+        self.cpp_info.components["mongoc"].libs = ["mongoc-1.0" if self.options.shared else "mongoc-static-1.0"]
+
+
+        # bson
+        bson_target = "bson_shared" if self.options.shared else "bson_static"
+        self.cpp_info.components["bson"].set_property("cmake_file_name", "libbson-1.0")
+        self.cpp_info.components["bson"].set_property("cmake_target_name", f"mongo::{bson_target}")
+        self.cpp_info.components["bson"].set_property("pkg_config_name", "libbson-1.0" if self.options.shared else "libbson-static-1.0")
+
+        self.cpp_info.components["bson"].builddirs.append(self._module_subfolder)
+        # self.cpp_info.components["bson"].build_modules["cmake_find_package"] = [self._module_file_rel_path]
+        # self.cpp_info.components["bson"].set_property("cmake_build_modules", [self._module_file_rel_path])
+
+        # self.cpp_info.components["bson"].names["cmake_find_package"] = bson_target
+        # self.cpp_info.components["bson"].names["cmake_find_package_multi"] = bson_target
+
+        self.cpp_info.components["bson"].includedirs = [os.path.join("include", "libbson-1.0")]
+        self.cpp_info.components["bson"].libs = ["bson-1.0" if self.options.shared else "bson-static-1.0"]
         if not self.options.shared:
-            self.cpp_info.defines.extend(['BSON_STATIC=1', 'MONGOC_STATIC=1'])
+            self.cpp_info.components["bson"].defines = ["BSON_STATIC"]
+        if self.settings.os in ["Linux", "FreeBSD"]:
+            self.cpp_info.components["bson"].system_libs = ["m", "pthread", "rt"]
+        elif self.settings.os == "Windows":
+            self.cpp_info.components["bson"].system_libs = ["ws2_32"]
 
-            if tools.os_info.is_linux or tools.os_info.is_macos:
-                self.cpp_info.system_libs.append('resolv')
-
-            if tools.os_info.is_windows:
-                self.cpp_info.system_libs.extend(['ws2_32.lib', 'secur32.lib', 'crypt32.lib', 'BCrypt.lib', 'Dnsapi.lib'])

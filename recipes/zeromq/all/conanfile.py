@@ -1,5 +1,9 @@
-from conans import ConanFile, tools, CMake
-from conans.errors import ConanInvalidConfiguration
+from conan import ConanFile
+from conan.errors import ConanInvalidConfiguration
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
+from conan.tools.files import copy, get, rmdir
+from conan.tools.microsoft import is_msvc
+from conan.tools.scm import Version
 import os
 
 
@@ -7,11 +11,12 @@ class ZeroMQConan(ConanFile):
     name = "zeromq"
     description = "ZeroMQ is a community of projects focused on decentralized messaging and computing"
     topics = ("conan", "zmq", "libzmq", "message-queue", "asynchronous")
-    url = "https://github.com/nemtech/symbol-server-dependencies.git",
+    url = "https://github.com/symbol/symbol-server-dependencies.git",
     homepage = "https://github.com/zeromq/libzmq"
     license = "LGPL-3.0"
-    exports_sources = "CMakeLists.txt"
-    generators = "cmake"
+    package_type = "library"
+    # exports_sources = "CMakeLists.txt"
+    # generators = "cmake"
 
     settings = "os", "arch", "compiler", "build_type"
     options = {
@@ -23,18 +28,19 @@ class ZeroMQConan(ConanFile):
         "fPIC": True
     }
 
-    _source_subfolder = "source_subfolder"
-    _build_subfolder = "build_subfolder"
+    # source_folder = "source_subfolder"
+    # build_folder = "build_subfolder"
 
     def source(self):
-        tools.get(**self.conan_data["sources"][self.version])
-
-        extracted_dir = "libzmq-{}".format(self.version)
-        os.rename(extracted_dir, self._source_subfolder)
+        get(self, **self.conan_data["sources"][self.version], strip_root=True)
+        # get(self, **self.conan_data["sources"][self.version])
+        #
+        # extracted_dir = "libzmq-{}".format(self.version)
+        # os.rename(extracted_dir, self.source_folder)
 
     def config_options(self):
         if self.settings.os == "Windows":
-            if self.settings.compiler == "Visual Studio" and tools.Version(self.settings.compiler.version.value) < 15:
+            if self.settings.compiler == "Visual Studio" and Version(self.settings.compiler.version.value) < 15:
                 raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
 
             del self.options.fPIC
@@ -43,36 +49,41 @@ class ZeroMQConan(ConanFile):
         if self.options.shared:
             del self.options.fPIC
 
-    def _configure_cmake(self):
-        cmake = CMake(self)
-        cmake.definitions["ZMQ_BUILD_TESTS"] = False
-        cmake.definitions["WITH_PERF_TOOL"] = False
-        cmake.definitions["BUILD_SHARED"] = self.options.shared
-        cmake.definitions["BUILD_STATIC"] = not self.options.shared
-        cmake.definitions["BUILD_TESTS"] = False
-        cmake.definitions["ENABLE_CPACK"] = False
-        cmake.definitions["WITH_DOCS"] = False
-        cmake.definitions["WITH_DOC"] = False
-        cmake.configure(build_folder=self._build_subfolder)
-        return cmake
+    def layout(self):
+        cmake_layout(self, src_folder="src")
+
+    def generate(self):
+        tc = CMakeToolchain(self)
+        tc.cache_variables["ZMQ_BUILD_TESTS"] = False
+        tc.cache_variables["WITH_PERF_TOOL"] = False
+        tc.cache_variables["BUILD_SHARED"] = self.options.shared
+        tc.cache_variables["BUILD_STATIC"] = not self.options.shared
+        tc.cache_variables["BUILD_TESTS"] = False
+        tc.cache_variables["ENABLE_CPACK"] = False
+        tc.cache_variables["WITH_DOCS"] = False
+        tc.cache_variables["WITH_DOC"] = False
+        tc.blocks["rpath"].skip_rpath = False
+        tc.generate()
 
     def build(self):
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
+        cmake.configure()
         cmake.build()
 
     def package(self):
-        self.copy(pattern="COPYING*", src=self._source_subfolder, dst="licenses")
-        cmake = self._configure_cmake()
+        copy(self, pattern="COPYING*", src=self.source_folder, dst="licenses")
+        cmake = CMake(self)
         cmake.install()
 
-        tools.rmdir(os.path.join(self.package_folder, "lib", "pkgconfig"))
-        tools.rmdir(os.path.join(self.package_folder, "share"))
+        rmdir(self, os.path.join(self.package_folder, "lib", "pkgconfig"))
+        rmdir(self, os.path.join(self.package_folder, "share"))
 
     def package_info(self):
-        self.cpp_info.names["cmake_find_package"] = "ZeroMQ"
-        self.cpp_info.names["cmake_find_package_multi"] = "ZeroMQ"
+        self.cpp_info.set_property("cmake_file_name", "ZeroMQ")
+        self.cpp_info.set_property("cmake_target_name", "ZeroMQ::ZeroMQ")
+        self.cpp_info.set_property("pkg_config_name", "ZeroMQ")
 
-        if self.settings.compiler == "Visual Studio":
+        if is_msvc(self):
             version = "_".join(self.version.split("."))
             if self.settings.build_type == "Debug":
                 runtime = "-gd" if self.options.shared else "-sgd"

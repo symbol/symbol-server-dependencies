@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 project(test_package)
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
-
 find_package(cppzmq REQUIRED)
 
 message("zeromq    inc: ${ZeroMQ_INCLUDE_DIR}")

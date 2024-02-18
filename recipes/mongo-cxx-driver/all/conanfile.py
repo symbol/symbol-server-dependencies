@@ -1,6 +1,12 @@
-from conans import ConanFile, CMake, tools
-from conans.errors import ConanInvalidConfiguration
+from conan import ConanFile
+from conan.errors import ConanInvalidConfiguration
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
+from conan.tools.files import get, replace_in_file
+from conan.tools.microsoft import is_msvc
+from conan.tools.scm import Version
+from conan.tools.gnu import PkgConfig
 import os
+import shutil
 
 class MongoCxxConan(ConanFile):
     name = "mongo-cxx-driver"
@@ -9,25 +15,20 @@ class MongoCxxConan(ConanFile):
     url = "https://github.com/nemtech/symbol-server-dependencies.git",
     homepage = "https://github.com/mongodb/mongo-cxx-driver"
     license = "Apache-2.0"
-    exports_sources = ["CMakeLists.txt"]
-    generators = "cmake"
+    package_type = "library"
 
     settings =  "os", "compiler", "arch", "build_type"
     options = {"shared": [True, False]}
     default_options = {"shared": True}
 
-    _source_subfolder = "source_subfolder"
-
-    requires = 'mongo-c-driver/[~=1.25.4]@nemtech/stable'
+    requires = 'mongo-c-driver/1.25.4@nemtech/stable'
 
     def source(self):
-        tools.get(**self.conan_data["sources"][self.version])
-        extracted_dir = self.name + "-r" + self.version
-        os.rename(extracted_dir, self._source_subfolder)
+        get(self, **self.conan_data["sources"][self.version], strip_root=True)
 
     def config_options(self):
         if self.settings.os == "Windows":
-            if self.settings.compiler == "Visual Studio" and tools.Version(self.settings.compiler.version.value) < 15:
+            if self.settings.compiler == "Visual Studio" and Version(self.settings.compiler.version.value) < 15:
                 raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
 
             del self.options.fPIC
@@ -35,31 +36,51 @@ class MongoCxxConan(ConanFile):
     def configure(self):
         pass
 
-    def _configure_cmake(self):
-        cmake = CMake(self)
+    def generate(self):
+        tc = CMakeToolchain(self)
 
-        cmake.definitions["CMAKE_CXX_STANDARD"] = "17"
-        cmake.definitions["BUILD_VERSION"] = self.version
+        tc.cache_variables["CMAKE_CXX_STANDARD"] = "17"
+        tc.cache_variables["BUILD_VERSION"] = self.version
+        tc.variables["ENABLE_TESTS"] = False
+        if is_msvc(self):
+            tc.cache_variables["CMAKE_CXX_FLAGS"] = "/Zc:__cplusplus"
 
-        if self.settings.compiler == "Visual Studio":
-            cmake.definitions["CMAKE_CXX_FLAGS"] = "/Zc:__cplusplus"
-
-        cmake.configure()
-        return cmake
+        tc.generate()
+        deps = CMakeDeps(self)
+        deps.generate()
 
     def build(self):
-        mongocxx_cmake_file = os.path.join(self._source_subfolder, 'src', 'mongocxx', 'CMakeLists.txt')
-        bsoncxx_cmake_file = os.path.join(self._source_subfolder, 'src', 'bsoncxx', 'CMakeLists.txt')
-        tools.replace_in_file(mongocxx_cmake_file, 'add_subdirectory(test)', '')
-        tools.replace_in_file(bsoncxx_cmake_file, 'add_subdirectory(test)', '')
-
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
+        cmake.configure()
         cmake.build()
 
     def package(self):
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.libs = ['mongocxx', 'bsoncxx']
+        mongocxx_target = "mongocxx_shared" if self.options.shared else "mongocxx_static"
+        self.cpp_info.set_property("cmake_file_name", "mongocxx")
+        self.cpp_info.set_property("cmake_target_name", f"mongo::{mongocxx_target}")
 
+        # mongocxx
+        self.cpp_info.components["mongocxx"].set_property("cmake_target_name", f"mongo::{mongocxx_target}")
+        self.cpp_info.components["mongocxx"].set_property("pkg_config_name", "libmongocxx" if self.options.shared else "libmongocxx-static")
+
+        self.cpp_info.components["mongocxx"].libs = ["mongocxx" if self.options.shared else "mongocxx-static"]
+        if not self.options.shared:
+            self.cpp_info.components["mongocxx"].defines.append("MONGOCXX_STATIC")
+        self.cpp_info.components["mongocxx"].requires = ["mongo-c-driver::mongoc", "bsoncxx"]
+        # The header files are in v_noabi -  https://mongocxx.org/mongocxx-v3/tutorial/
+        self.cpp_info.components["mongocxx"].includedirs.extend([os.path.join("include", "mongocxx", "v_noabi")])
+
+        # bsoncxx
+        bsoncxx_target = "bsoncxx_shared" if self.options.shared else "bsoncxx_static"
+        self.cpp_info.components["bsoncxx"].set_property("cmake_target_name", f"mongo::{bsoncxx_target}")
+        self.cpp_info.components["bsoncxx"].set_property("pkg_config_name", "libbsoncxx" if self.options.shared else "libbsoncxx-static")
+
+        self.cpp_info.components["bsoncxx"].libs = ["bsoncxx" if self.options.shared else "bsoncxx-static"]
+        self.cpp_info.components["bsoncxx"].includedirs.extend([os.path.join("include", "bsoncxx", "v_noabi")])
+        if not self.options.shared:
+            self.cpp_info.components["bsoncxx"].defines = ["BSONCXX_STATIC"]
+        self.cpp_info.components["bsoncxx"].requires = ["mongo-c-driver::bson"]

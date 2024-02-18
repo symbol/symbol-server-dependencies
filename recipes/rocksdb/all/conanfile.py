@@ -1,11 +1,15 @@
 ## Note: the package always contains both libraries (shared vs static) independent of shared setting
 ## that is done to avoid patching CMakefile
 
-from conans import ConanFile, CMake, tools
-from conans.errors import ConanInvalidConfiguration
+from conan import ConanFile
+from conan.tools.build import check_min_cppstd
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
+from conan.tools.files import copy, collect_libs, get
+from conan.tools.microsoft import is_msvc, is_msvc_static_runtime
+from conan.tools.scm import Version
+from conan.errors import ConanInvalidConfiguration
 import os
 import glob
-import shutil
 
 class RocksDB(ConanFile):
     name = "rocksdb"
@@ -14,8 +18,7 @@ class RocksDB(ConanFile):
     homepage = "https://github.com/facebook/rocksdb"
     url = "https://github.com/nemtech/symbol-server-dependencies.git",
     license = ("GPL-2.0-only", "Apache-2.0")
-    exports_sources = ["CMakeLists.txt"]
-    generators = "cmake", "cmake_find_package"
+    package_type = "library"
 
     settings = "os", "compiler", "build_type", "arch"
 
@@ -46,83 +49,85 @@ class RocksDB(ConanFile):
         "with_zstd": False
     }
 
-    _source_subfolder = "source_subfolder"
-    _build_subfolder = "build_subfolder"
     
     def config_options(self):
         if self.settings.os == "Windows":
-            if self.settings.compiler == "Visual Studio" and tools.Version(self.settings.compiler.version.value) < 15:
+            if self.settings.compiler == "Visual Studio" and Version(self.settings.compiler.version.value) < 15:
                 raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
 
             del self.options.fPIC
 
         minimal_cpp_standard = "11"
         if self.settings.compiler.cppstd:
-            tools.check_min_cppstd(self, minimal_cpp_standard)
+            check_min_cppstd(self, minimal_cpp_standard)
 
     def configure(self):
         if self.settings.build_type == "Debug":
             self.options.use_rtti = True  # Rtti are used in asserts for debug mode...
 
-    def _configure_cmake(self):
-        cmake = CMake(self)
+    def generate(self):
+        tc = CMakeToolchain(self)
 
-        cmake.definitions["FAIL_ON_WARNINGS"] = False
-        cmake.definitions["WITH_TESTS"] = False
-        cmake.definitions["WITH_TOOLS"] = False
-        cmake.definitions["WITH_CORE_TOOLS"] = False
-        cmake.definitions["WITH_BENCHMARK_TOOLS"] = False
-        cmake.definitions["WITH_FOLLY_DISTRIBUTED_MUTEX"] = False
-        cmake.definitions["WITH_MD_LIBRARY"] = self.settings.compiler == "Visual Studio" and "MD" in self.settings.compiler.runtime
-        cmake.definitions["ROCKSDB_INSTALL_ON_WINDOWS"] = self.settings.os == "Windows"
-        cmake.definitions["WITH_GFLAGS"] = self.options.with_gflags
-        cmake.definitions["WITH_SNAPPY"] = self.options.with_snappy
-        cmake.definitions["WITH_LZ4"] = self.options.with_lz4
-        cmake.definitions["WITH_ZLIB"] = self.options.with_zlib
-        cmake.definitions["WITH_ZSTD"] = self.options.with_zstd
-        cmake.definitions["WITH_TBB"] = self.options.with_tbb
-        cmake.definitions["WITH_JEMALLOC"] = self.options.with_jemalloc
-        cmake.definitions["ROCKSDB_BUILD_SHARED"] = self.options.shared
-        #cmake.definitions["ROCKSDB_LIBRARY_EXPORTS"] = self.settings.os == "Windows" and self.options.shared
-        #cmake.definitions["ROCKSDB_DLL" ] = self.settings.os == "Windows" and self.options.shared
+        tc.cache_variables["FAIL_ON_WARNINGS"] = False
+        tc.cache_variables["WITH_TESTS"] = False
+        tc.cache_variables["WITH_TOOLS"] = False
+        tc.cache_variables["WITH_CORE_TOOLS"] = False
+        tc.cache_variables["WITH_BENCHMARK_TOOLS"] = False
+        tc.cache_variables["WITH_FOLLY_DISTRIBUTED_MUTEX"] = False
+        tc.cache_variables["WITH_MD_LIBRARY"] = is_msvc(self) and "MD" in self.settings.compiler.runtime
+        tc.cache_variables["ROCKSDB_INSTALL_ON_WINDOWS"] = self.settings.os == "Windows"
+        tc.cache_variables["WITH_GFLAGS"] = self.options.with_gflags
+        tc.cache_variables["WITH_SNAPPY"] = self.options.with_snappy
+        tc.cache_variables["WITH_LZ4"] = self.options.with_lz4
+        tc.cache_variables["WITH_ZLIB"] = self.options.with_zlib
+        tc.cache_variables["WITH_ZSTD"] = self.options.with_zstd
+        tc.cache_variables["WITH_TBB"] = self.options.with_tbb
+        tc.cache_variables["WITH_JEMALLOC"] = self.options.with_jemalloc
+        tc.cache_variables["ROCKSDB_BUILD_SHARED"] = self.options.shared
 
-        cmake.definitions["USE_RTTI"] = self.options.use_rtti
+        tc.cache_variables["USE_RTTI"] = self.options.use_rtti
 
         # sse was removed https://github.com/facebook/rocksdb/pull/11419
-        cmake.definitions["PORTABLE"] = "TRUE"
+        tc.cache_variables["PORTABLE"] = "TRUE"
 
-        cmake.definitions["WITH_NUMA"] = False
+        tc.cache_variables["WITH_NUMA"] = False
+        tc.generate()
+        deps = CMakeDeps(self)
+        deps.generate()
 
-        cmake.configure(build_folder=self._build_subfolder)
-        return cmake
+    def layout(self):
+        cmake_layout(self, src_folder="src")
 
     def source(self):
-        tools.get(**self.conan_data["sources"][self.version])
-        extracted_dir = "{name}-{version}".format(
-          name = self.name,
-          version = self.version
-        )
-        os.rename(extracted_dir, self._source_subfolder)
+        get(self, **self.conan_data["sources"][self.version], strip_root=True)
+        #
+        # get(self, **self.conan_data["sources"][self.version])
+        # extracted_dir = "{name}-{version}".format(
+        #   name = self.name,
+        #   version = self.version
+        # )
+        # os.rename(extracted_dir, self._source_subfolder)
 
     def build(self):
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
+        cmake.configure()
         cmake.build()
 
     def requirements(self):
         if self.options.with_gflags:
             self.requires("gflags/2.2.2")
         if self.options.with_snappy:
-            self.requires("snappy/1.1.7")
+            self.requires("snappy/1.1.10")
         if self.options.with_lz4:
-            self.requires("lz4/1.9.2")
+            self.requires("lz4/1.9.4")
         if self.options.with_zlib:
-            self.requires("zlib/1.2.11")
+            self.requires("zlib/[>=1.2.11 <2]")
         if self.options.with_zstd:
-            self.requires("zstd/1.3.8")
-        if self.options.with_tbb:
-            self.requires("tbb/2019_u9")
+            self.requires("zstd/1.5.5")
+        if self.options.get_safe("with_tbb"):
+            self.requires("onetbb/2021.10.0")
         if self.options.with_jemalloc:
-            self.requires("jemalloc/5.2.1")
+            self.requires("jemalloc/5.3.0")
 
     def _remove_static_libraries(self):
         for static_lib_name in ["lib*.a", "{}.lib".format(self.name)]:
@@ -130,19 +135,16 @@ class RocksDB(ConanFile):
                 os.remove(file)
 
     def package(self):
-        self.copy("COPYING", dst="licenses", src=self._source_subfolder)
-        self.copy("LICENSE*", dst="licenses", src=self._source_subfolder)
-        cmake = self._configure_cmake()
+        copy(self, "COPYING", dst="licenses", src=self.source_folder)
+        copy(self, "LICENSE*", dst="licenses", src=self.source_folder)
+        cmake = CMake(self)
         cmake.install()
-        #if self.options.shared:
-        #    self._remove_static_libraries()
-
-        #tools.rmdir(os.path.join(self.package_folder, "lib", "cmake"))
 
     def package_info(self):
-        self.cpp_info.names["cmake_find_package"] = "RocksDB"
-        self.cpp_info.names["cmake_find_package_multi"] = "RocksDB"
-        self.cpp_info.libs = tools.collect_libs(self)
+        cmake_target = "rocksdb-shared" if self.options.shared else "rocksdb"
+        self.cpp_info.set_property("cmake_find_package", "RocksDB")
+        self.cpp_info.set_property("cmake_target_name", f"RocksDB::{cmake_target}")
+        self.cpp_info.libs = collect_libs(self)
         if self.settings.os == "Windows":
             self.cpp_info.system_libs = ["Shlwapi.lib", "Rpcrt4.lib"]
             if self.options.shared:

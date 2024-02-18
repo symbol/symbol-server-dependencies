@@ -160,7 +160,7 @@ class CatapultRecipesUpdater:
 	async def build_conan_package(self, recipes_versions):
 		await self._execute_conan_package_command(
 			recipes_versions,
-			lambda version, recipe_name: ['conan', 'create', '.', f'{version}@nemtech/stable', '--build=missing', '--remote=nemtech']
+			lambda version, recipe_name: ['conan', 'create', '.', '--name', f'{version}@nemtech/stable', '--build=missing', '--remote=nemtech']
 		)
 
 	async def upload_conan_package(self, recipes_versions):
