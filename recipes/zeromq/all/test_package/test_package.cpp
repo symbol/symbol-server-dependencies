@@ -5,15 +5,15 @@
 
 int main() try
 {
-    void *context = zmq_ctx_new();
-    void *requester = zmq_socket(context, ZMQ_REQ);
+	void *context = zmq_ctx_new();
+	void *requester = zmq_socket(context, ZMQ_REQ);
 
-    zmq_close(requester);
-    zmq_ctx_destroy (context);
+	zmq_close(requester);
+	zmq_ctx_destroy (context);
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 catch (std::runtime_error & e) {
-    std::cerr << e.what() << std::endl;
-    return EXIT_FAILURE;
+	std::cerr << e.what() << std::endl;
+	return EXIT_FAILURE;
 }
