@@ -4,9 +4,7 @@ from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 from conan.tools.files import get, replace_in_file
 from conan.tools.microsoft import is_msvc
 from conan.tools.scm import Version
-from conan.tools.gnu import PkgConfig
 import os
-import shutil
 
 class MongoCxxConan(ConanFile):
     name = "mongo-cxx-driver"
@@ -22,6 +20,9 @@ class MongoCxxConan(ConanFile):
     default_options = {"shared": True}
 
     requires = 'mongo-c-driver/1.25.4@nemtech/stable'
+
+    def layout(self):
+        cmake_layout(self, src_folder="src")
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
@@ -41,9 +42,12 @@ class MongoCxxConan(ConanFile):
 
         tc.cache_variables["CMAKE_CXX_STANDARD"] = "17"
         tc.cache_variables["BUILD_VERSION"] = self.version
-        tc.variables["ENABLE_TESTS"] = False
+        tc.cache_variables["ENABLE_TESTS"] = False
         if is_msvc(self):
             tc.cache_variables["CMAKE_CXX_FLAGS"] = "/Zc:__cplusplus"
+
+        if "Macos" == self.settings.os:
+            tc.blocks["rpath"].skip_rpath = False
 
         tc.generate()
         deps = CMakeDeps(self)
@@ -71,6 +75,7 @@ class MongoCxxConan(ConanFile):
         if not self.options.shared:
             self.cpp_info.components["mongocxx"].defines.append("MONGOCXX_STATIC")
         self.cpp_info.components["mongocxx"].requires = ["mongo-c-driver::mongoc", "bsoncxx"]
+
         # The header files are in v_noabi -  https://mongocxx.org/mongocxx-v3/tutorial/
         self.cpp_info.components["mongocxx"].includedirs.extend([os.path.join("include", "mongocxx", "v_noabi")])
 
@@ -79,7 +84,9 @@ class MongoCxxConan(ConanFile):
         self.cpp_info.components["bsoncxx"].set_property("cmake_target_name", f"mongo::{bsoncxx_target}")
         self.cpp_info.components["bsoncxx"].set_property("pkg_config_name", "libbsoncxx" if self.options.shared else "libbsoncxx-static")
 
+        # The header files are in v_noabi -  https://mongocxx.org/mongocxx-v3/tutorial/
         self.cpp_info.components["bsoncxx"].libs = ["bsoncxx" if self.options.shared else "bsoncxx-static"]
+
         self.cpp_info.components["bsoncxx"].includedirs.extend([os.path.join("include", "bsoncxx", "v_noabi")])
         if not self.options.shared:
             self.cpp_info.components["bsoncxx"].defines = ["BSONCXX_STATIC"]

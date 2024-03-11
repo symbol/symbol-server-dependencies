@@ -1,6 +1,6 @@
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
-from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
+from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
 from conan.tools.files import copy, get, rmdir
 from conan.tools.microsoft import is_msvc
 from conan.tools.scm import Version
@@ -15,8 +15,6 @@ class ZeroMQConan(ConanFile):
     homepage = "https://github.com/zeromq/libzmq"
     license = "LGPL-3.0"
     package_type = "library"
-    # exports_sources = "CMakeLists.txt"
-    # generators = "cmake"
 
     settings = "os", "arch", "compiler", "build_type"
     options = {
@@ -28,15 +26,8 @@ class ZeroMQConan(ConanFile):
         "fPIC": True
     }
 
-    # source_folder = "source_subfolder"
-    # build_folder = "build_subfolder"
-
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
-        # get(self, **self.conan_data["sources"][self.version])
-        #
-        # extracted_dir = "libzmq-{}".format(self.version)
-        # os.rename(extracted_dir, self.source_folder)
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -62,7 +53,10 @@ class ZeroMQConan(ConanFile):
         tc.cache_variables["ENABLE_CPACK"] = False
         tc.cache_variables["WITH_DOCS"] = False
         tc.cache_variables["WITH_DOC"] = False
-        tc.blocks["rpath"].skip_rpath = False
+
+        if "Macos" == self.settings.os:
+            tc.blocks["rpath"].skip_rpath = False
+
         tc.generate()
 
     def build(self):

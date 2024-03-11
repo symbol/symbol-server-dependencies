@@ -1,6 +1,6 @@
 from conan import ConanFile
 from conan.tools.build import cross_building
-from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
+from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
 from conan.tools.files import collect_libs, copy, get, rmdir
 from conan.tools.scm import Version
 from conan.errors import ConanInvalidConfiguration
@@ -65,7 +65,9 @@ class BenchmarkConan(ConanFile):
         else:
             tc.cache_variables["BENCHMARK_USE_LIBCXX"] = "OFF"
 
-        tc.blocks["rpath"].skip_rpath = False
+        if "Macos" == self.settings.os:
+            tc.blocks["rpath"].skip_rpath = False
+
         tc.generate()
 
     def build(self):
@@ -91,5 +93,3 @@ class BenchmarkConan(ConanFile):
             self.cpp_info.libs.extend(["pthread", "rt"])
         elif self.settings.os == "Windows":
             self.cpp_info.libs.append("shlwapi")
-        elif self.settings.os == "SunOS":
-            self.cpp_info.libs.append("kstat")

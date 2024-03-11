@@ -5,7 +5,7 @@ from conan import ConanFile
 from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 from conan.tools.files import copy, collect_libs, get
-from conan.tools.microsoft import is_msvc, is_msvc_static_runtime
+from conan.tools.microsoft import is_msvc
 from conan.tools.scm import Version
 from conan.errors import ConanInvalidConfiguration
 import os
@@ -89,8 +89,11 @@ class RocksDB(ConanFile):
 
         # sse was removed https://github.com/facebook/rocksdb/pull/11419
         tc.cache_variables["PORTABLE"] = "TRUE"
-
         tc.cache_variables["WITH_NUMA"] = False
+
+        if "Macos" == self.settings.os:
+            tc.blocks["rpath"].skip_rpath = False
+
         tc.generate()
         deps = CMakeDeps(self)
         deps.generate()
@@ -100,13 +103,6 @@ class RocksDB(ConanFile):
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
-        #
-        # get(self, **self.conan_data["sources"][self.version])
-        # extracted_dir = "{name}-{version}".format(
-        #   name = self.name,
-        #   version = self.version
-        # )
-        # os.rename(extracted_dir, self._source_subfolder)
 
     def build(self):
         cmake = CMake(self)

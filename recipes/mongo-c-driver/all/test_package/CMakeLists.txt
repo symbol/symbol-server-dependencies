@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
 project(test_package)
 
-find_package(mongoc-1.0 REQUIRED)
-find_package(bson-1.0 REQUIRED)
+find_package(libmongoc-1.0 REQUIRED)
+find_package(libbson-1.0 REQUIRED)
 find_package(ZLIB REQUIRED)
 
 message ("--   mongoc found version \"${MONGOC_VERSION}\"")

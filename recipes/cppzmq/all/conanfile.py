@@ -38,6 +38,9 @@ class CppZmqConan(ConanFile):
     def generate(self):
         tc = CMakeToolchain(self)
         tc.cache_variables["CPPZMQ_BUILD_TESTS"] = False
+        if "Macos" == self.settings.os:
+            tc.blocks["rpath"].skip_rpath = False
+
         tc.generate()
         deps = CMakeDeps(self)
         deps.generate()
