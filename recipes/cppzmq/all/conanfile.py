@@ -7,6 +7,7 @@ from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain
 from conan.tools.files import apply_conandata_patches, copy, get
+from conan.tools.microsoft import is_msvc
 from conan.tools.scm import Version
 
 
@@ -30,7 +31,7 @@ class CppZmqConan(ConanFile):
 
 	def config_options(self):
 		if self.settings.os == "Windows":
-			if self.settings.compiler == "Visual Studio" and Version(self.settings.compiler.version.value) < 15:
+			if is_msvc(self) and Version(self.settings.compiler.version.value) < 15:
 				raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
 
 	def generate(self):

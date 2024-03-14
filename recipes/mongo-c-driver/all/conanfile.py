@@ -43,8 +43,8 @@ class MongoCDriverConan(ConanFile):
 			del self.options.fPIC
 
 	def configure(self):
-		del self.settings.compiler.libcxx
-		del self.settings.compiler.cppstd
+		self.settings.rm_safe("compiler.libcxx")
+		self.settings.rm_safe("compiler.cppstd")
 
 	def generate(self):
 		tc = CMakeToolchain(self)
@@ -92,10 +92,6 @@ class MongoCDriverConan(ConanFile):
 	@property
 	def _module_subfolder(self):
 		return os.path.join("lib", "cmake")
-
-	@property
-	def _module_file_rel_path(self):
-		return os.path.join(self._module_subfolder, f"conan-official-{self.name}-variables.cmake")
 
 	def package_info(self):
 		mongoc_target = "mongoc_shared" if self.options.shared else "mongoc_static"

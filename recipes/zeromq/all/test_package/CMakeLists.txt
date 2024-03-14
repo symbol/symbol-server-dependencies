@@ -7,7 +7,7 @@ find_package(ZeroMQ REQUIRED)
 
 message("zeromq    ver: ${ZeroMQ_VERSION}")
 message("zeromq    inc: ${ZeroMQ_INCLUDE_DIR}")
-message("zeromq    lib: ${ZeroMQ_LIBRARY}")
+message("zeromq    lib: ${ZeroMQ_LIBRARIES}")
 
 add_executable(${PROJECT_NAME} test_package.cpp)
 target_link_libraries(${PROJECT_NAME} ZeroMQ::ZeroMQ)

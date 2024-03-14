@@ -52,12 +52,12 @@ class RocksDB(ConanFile):
 
 	def config_options(self):
 		if self.settings.os == "Windows":
-			if self.settings.compiler == "Visual Studio" and Version(self.settings.compiler.version.value) < 15:
+			if is_msvc(self) and Version(self.settings.compiler.version.value) < 15:
 				raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
 
 			del self.options.fPIC
 
-		minimal_cpp_standard = "11"
+		minimal_cpp_standard = "17"
 		if self.settings.compiler.cppstd:
 			check_min_cppstd(self, minimal_cpp_standard)
 
@@ -140,10 +140,10 @@ class RocksDB(ConanFile):
 		cmake_target = "rocksdb-shared" if self.options.shared else "rocksdb"
 		self.cpp_info.set_property("cmake_find_package", "RocksDB")
 		self.cpp_info.set_property("cmake_target_name", f"RocksDB::{cmake_target}")
-		self.cpp_info.libs = collect_libs(self)
+		self.cpp_info.components["librocksdb"].libs = collect_libs(self)
 		if self.settings.os == "Windows":
-			self.cpp_info.system_libs = ["Shlwapi.lib", "Rpcrt4.lib"]
+			self.cpp_info.components["librocksdb"].system_libs = ["shlwapi", "rpcrt4"]
 			if self.options.shared:
-				self.cpp_info.defines = ["ROCKSDB_DLL"]
+				self.cpp_info.components["librocksdb"].defines = ["ROCKSDB_DLL"]
 		elif self.settings.os == "Linux":
-			self.cpp_info.system_libs = ["pthread", "m"]
+			self.cpp_info.components["librocksdb"].system_libs = ["pthread", "m"]

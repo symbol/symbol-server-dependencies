@@ -1,7 +1,7 @@
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
-from conan.tools.files import copy, get, rmdir
+from conan.tools.files import apply_conandata_patches, collect_libs, copy, export_conandata_patches, get, rmdir
 from conan.tools.microsoft import is_msvc
 from conan.tools.scm import Version
 import os
@@ -26,12 +26,15 @@ class ZeroMQConan(ConanFile):
 		"fPIC": True
 	}
 
+	def export_sources(self):
+		export_conandata_patches(self)
+
 	def source(self):
 		get(self, **self.conan_data["sources"][self.version], strip_root=True)
 
 	def config_options(self):
 		if self.settings.os == "Windows":
-			if self.settings.compiler == "Visual Studio" and Version(self.settings.compiler.version.value) < 15:
+			if is_msvc(self) and Version(self.settings.compiler.version.value) < 15:
 				raise ConanInvalidConfiguration(
 					"{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
 
@@ -39,7 +42,7 @@ class ZeroMQConan(ConanFile):
 
 	def configure(self):
 		if self.options.shared:
-			del self.options.fPIC
+			self.options.rm_safe("fPIC")
 
 	def layout(self):
 		cmake_layout(self, src_folder="src")
@@ -61,6 +64,7 @@ class ZeroMQConan(ConanFile):
 		tc.generate()
 
 	def build(self):
+		apply_conandata_patches(self)
 		cmake = CMake(self)
 		cmake.configure()
 		cmake.build()
@@ -78,27 +82,11 @@ class ZeroMQConan(ConanFile):
 		self.cpp_info.set_property("cmake_target_name", "ZeroMQ::ZeroMQ")
 		self.cpp_info.set_property("pkg_config_name", "ZeroMQ")
 
-		if is_msvc(self):
-			version = "_".join(self.version.split("."))
-			if self.settings.build_type == "Debug":
-				runtime = "-gd" if self.options.shared else "-sgd"
-			else:
-				runtime = "" if self.options.shared else "-s"
-			library_name = "libzmq-mt%s-%s" % (runtime, version)
-			if not os.path.isfile(os.path.join(self.package_folder, "lib", library_name)):
-				# unfortunately Visual Studio and Ninja generators produce different file names
-				toolset = {"12": "v120",
-						   "14": "v140",
-						   "15": "v141",
-						   "16": "v142"}.get(str(self.settings.compiler.version))
-				library_name = "libzmq-%s-mt%s-%s" % (toolset, runtime, version)
-			self.cpp_info.libs = [library_name]
-		else:
-			self.cpp_info.libs = ["zmq"]
-
+		self.cpp_info.components["libzmq"].set_property("cmake_target_name", "libzmq")
+		self.cpp_info.components["libzmq"].libs = collect_libs(self)
 		if self.settings.os == "Windows":
-			self.cpp_info.system_libs = ["iphlpapi", "ws2_32"]
+			self.cpp_info.components["libzmq"].system_libs = ["iphlpapi", "ws2_32"]
 		elif self.settings.os == "Linux":
-			self.cpp_info.system_libs = ["pthread", "rt", "m"]
+			self.cpp_info.components["libzmq"].system_libs = ["pthread", "rt", "m"]
 		if not self.options.shared:
-			self.cpp_info.defines.append("ZMQ_STATIC")
+			self.cpp_info.components["libzmq"].defines.append("ZMQ_STATIC")

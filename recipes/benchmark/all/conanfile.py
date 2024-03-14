@@ -3,6 +3,7 @@ from conan.errors import ConanInvalidConfiguration
 from conan.tools.build import cross_building
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
 from conan.tools.files import collect_libs, copy, get, rmdir
+from conan.tools.microsoft import is_msvc
 from conan.tools.scm import Version
 import os
 
@@ -30,7 +31,7 @@ class BenchmarkConan(ConanFile):
 
 	def config_options(self):
 		if self.settings.os == "Windows":
-			if self.settings.compiler == "Visual Studio" and Version(self.settings.compiler.version.value) < 15:
+			if is_msvc(self) and Version(self.settings.compiler.version.value) < 15:
 				raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
 
 			del self.options.fPIC
@@ -88,8 +89,11 @@ class BenchmarkConan(ConanFile):
 
 		self.cpp_info.components["_benchmark"].set_property("cmake_target_name", "benchmark::benchmark")
 		self.cpp_info.components["_benchmark"].libs = ["benchmark"]
+		if Version(self.version) >= Version("1.7.0") and not self.options.shared:
+			self.cpp_info.components["_benchmark"].defines.append("BENCHMARK_STATIC_DEFINE")
+
 		self.cpp_info.libs = collect_libs(self)
 		if self.settings.os == "Linux":
-			self.cpp_info.libs.extend(["pthread", "rt"])
+			self.cpp_info.components["_benchmark"].system_libs.extend(["pthread", "rt", "m"])
 		elif self.settings.os == "Windows":
-			self.cpp_info.libs.append("shlwapi")
+			self.cpp_info.components["_benchmark"].system_libs.append("shlwapi")

@@ -15,7 +15,7 @@ class MongoCxxConan(ConanFile):
 	license = "Apache-2.0"
 	package_type = "library"
 
-	settings =  "os", "compiler", "arch", "build_type"
+	settings = "os", "compiler", "arch", "build_type"
 	options = {"shared": [True, False]}
 	default_options = {"shared": True}
 
@@ -29,7 +29,7 @@ class MongoCxxConan(ConanFile):
 
 	def config_options(self):
 		if self.settings.os == "Windows":
-			if self.settings.compiler == "Visual Studio" and Version(self.settings.compiler.version.value) < 15:
+			if is_msvc(self) and Version(self.settings.compiler.version.value) < 15:
 				raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
 
 			del self.options.fPIC
@@ -44,7 +44,7 @@ class MongoCxxConan(ConanFile):
 		tc.cache_variables["BUILD_VERSION"] = self.version
 		tc.cache_variables["ENABLE_TESTS"] = False
 		if is_msvc(self):
-			tc.cache_variables["CMAKE_CXX_FLAGS"] = "/Zc:__cplusplus"
+			tc.cache_variables["CMAKE_CXX_FLAGS"] = "/Zc:__cplusplus /EHsc"
 
 		if "Macos" == self.settings.os:
 			tc.blocks["rpath"].skip_rpath = False
