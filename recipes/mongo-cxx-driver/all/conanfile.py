@@ -32,7 +32,7 @@ class MongoCxxConan(ConanFile):
 			if is_msvc(self) and Version(self.settings.compiler.version.value) < 15:
 				raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
 
-			del self.options.fPIC
+			self.options.rm_safe("fPIC")
 
 	def configure(self):
 		pass
