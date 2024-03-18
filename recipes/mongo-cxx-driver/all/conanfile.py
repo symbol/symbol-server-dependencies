@@ -19,7 +19,8 @@ class MongoCxxConan(ConanFile):
 	options = {"shared": [True, False]}
 	default_options = {"shared": True}
 
-	requires = 'mongo-c-driver/1.25.4@nemtech/stable'
+	def requirements(self):
+		self.requires("mongo-c-driver/1.25.4@nemtech/stable", transitive_libs=True, run=True)
 
 	def layout(self):
 		cmake_layout(self, src_folder="src")

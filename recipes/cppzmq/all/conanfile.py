@@ -24,7 +24,8 @@ class CppZmqConan(ConanFile):
 
 	settings = "os", "compiler", "build_type", "arch"
 
-	requires = "zeromq/4.3.5@nemtech/stable"
+	def requirements(self):
+		self.requires("zeromq/4.3.5@nemtech/stable", transitive_libs=True, run=True)
 
 	def source(self):
 		get(self, **self.conan_data["sources"][self.version], strip_root=True)

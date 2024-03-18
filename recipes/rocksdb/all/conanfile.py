@@ -140,6 +140,8 @@ class RocksDB(ConanFile):
 		cmake_target = "rocksdb-shared" if self.options.shared else "rocksdb"
 		self.cpp_info.set_property("cmake_find_package", "RocksDB")
 		self.cpp_info.set_property("cmake_target_name", f"RocksDB::{cmake_target}")
+		self.cpp_info.set_property("pkg_config_name", "RocksDB")
+
 		self.cpp_info.components["librocksdb"].libs = collect_libs(self)
 		if self.settings.os == "Windows":
 			self.cpp_info.components["librocksdb"].system_libs = ["shlwapi", "rpcrt4"]
