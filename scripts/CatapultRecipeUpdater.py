@@ -3,12 +3,12 @@
 import argparse
 import asyncio
 import re
-import semver
 import subprocess
 import tempfile
 import yaml
 
 from aiohttp import ClientSession
+from conan.tools.scm import Version
 from pathlib import Path
 
 CONAN_NEMTECH_REMOTE = 'https://conan.symbol.dev/artifactory/api/conan/catapult'
@@ -98,7 +98,7 @@ class CatapultRecipesUpdater:
 		recipe = self.recipe_helper.get_recipe_name(recipe_repo)
 		current_version = await self._get_current_version(recipe)
 		print(f'checking recipe {recipe} {current_version} -> {latest_version}')
-		if semver.compare(latest_version, current_version) > 0:
+		if Version(latest_version) > Version(current_version):
 			print(f'{recipe} has new version: {latest_version}')
 			return recipe, current_version, latest_version
 
