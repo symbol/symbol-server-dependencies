@@ -1,4 +1,4 @@
 sources:
-  1.25.4:
-    url: https://github.com/mongodb/mongo-c-driver/archive/refs/tags/1.25.4.tar.gz
-    sha256: 0ab3c5b238803b82a6b217d1ef21ea71a6e96251063322dc1038bea70a3da541
+  1.26.1:
+    url: https://github.com/mongodb/mongo-c-driver/archive/refs/tags/1.26.1.tar.gz
+    sha256: 718922183339db70079d4b56d37789a9e4aa0a62bb4d5eac55e3013da18e6d39
