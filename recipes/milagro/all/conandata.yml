@@ -1,7 +1,0 @@
-sources:
-  "2.0.1-nem":
-    url: https://github.com/nemtech/incubator-milagro-crypto-c/archive/2.0.1-nem.tar.gz
-    sha256: 8c8ef657b13d84e6fd053df684bce4b1cf500eb72ca73903312a90e36d67296f
-  "2.0.1":
-    url: https://github.com/apache/incubator-milagro-crypto-c/archive/2.0.1.tar.gz
-    sha256: 48fc7e0d7ad5edbfe8a779dc56f28813c25798ddfd60f1d94ccf1203eacd5645

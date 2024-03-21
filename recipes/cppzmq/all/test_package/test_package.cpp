@@ -4,11 +4,11 @@
 
 int main ()
 {
-    //  Prepare our context and socket
-    zmq::context_t context (1);
-    zmq::socket_t socket (context, ZMQ_REQ);
+	//  Prepare our context and socket
+	zmq::context_t context (1);
+	zmq::socket_t socket (context, ZMQ_REQ);
 
-    socket.connect ("tcp://localhost:5555");
+	socket.connect ("tcp://localhost:5555");
 
-    return 0;
+	return 0;
 }

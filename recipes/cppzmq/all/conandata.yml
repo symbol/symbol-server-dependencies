@@ -4,5 +4,5 @@ sources:
     sha256: c81c81bba8a7644c84932225f018b5088743a22999c6d82a2b5f5cd1e6942b74
 patches:
   4.10.0:
-  - base_path: source_subfolder
+  - base_path: "."
     patch_file: patches/0002-cmakelists-hacks.patch

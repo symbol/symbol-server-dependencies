@@ -3,9 +3,6 @@ project(test_package)
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
-
 find_package(benchmark 1.8.3 EXACT REQUIRED)
 
 add_executable(${PROJECT_NAME} test_package.cpp)

@@ -3,59 +3,65 @@
 ##  * links with libzmq (shared) so that doing find_package(cppzmq) should define libzmq target
 ##
 
-from conans import ConanFile, CMake, tools
-from conans.errors import ConanInvalidConfiguration
-import os
+from conan import ConanFile
+from conan.errors import ConanInvalidConfiguration
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain
+from conan.tools.files import apply_conandata_patches, copy, get
+from conan.tools.microsoft import is_msvc
+from conan.tools.scm import Version
 
 
 class CppZmqConan(ConanFile):
-    name = "cppzmq"
+	name = "cppzmq"
 
-    description = "C++ binding for ZeroMQ"
-    topics = ("conan", "cppzmq", "zmq-cpp", "zmq", "cpp-bind")
-    url = "https://github.com/nemtech/symbol-server-dependencies.git",
-    homepage = "https://github.com/zeromq/cppzmq"
-    license = "MIT"
-    exports_sources = "CMakeLists.txt", "patches/*.patch"
-    generators = "cmake", "cmake_find_package"
+	description = "C++ binding for ZeroMQ"
+	topics = ("conan", "cppzmq", "zmq-cpp", "zmq", "cpp-bind")
+	url = "https://github.com/symbol/symbol-server-dependencies",
+	homepage = "https://github.com/zeromq/cppzmq"
+	license = "MIT"
+	exports_sources = "patches/*.patch"
+	package_type = "header-library"
 
-    settings = "os", "compiler", "build_type", "arch"
+	settings = "os", "compiler", "build_type", "arch"
 
-    requires = "zeromq/4.3.5@nemtech/stable"
+	def requirements(self):
+		self.requires("zeromq/4.3.5@nemtech/stable", transitive_libs=True, run=True)
 
-    _source_subfolder = "source_subfolder"
-    _build_subfolder = "build_subfolder"
+	def source(self):
+		get(self, **self.conan_data["sources"][self.version], strip_root=True)
 
-    def source(self):
-        tools.get(**self.conan_data["sources"][self.version])
+	def config_options(self):
+		if self.settings.os == "Windows":
+			if is_msvc(self) and Version(self.settings.compiler.version.value) < 15:
+				raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
 
-        extracted_dir = "cppzmq-{}".format(self.version)
-        os.rename(extracted_dir, self._source_subfolder)
+	def generate(self):
+		tc = CMakeToolchain(self)
+		tc.cache_variables["CPPZMQ_BUILD_TESTS"] = False
+		if "Macos" == self.settings.os:
+			tc.blocks["rpath"].skip_rpath = False
 
-    def config_options(self):
-        if self.settings.os == "Windows":
-            if self.settings.compiler == "Visual Studio" and tools.Version(self.settings.compiler.version.value) < 15:
-                raise ConanInvalidConfiguration("{} {}, 'Symbol' packages do not support Visual Studio < 15".format(self.name, self.version))
+		tc.generate()
+		deps = CMakeDeps(self)
+		deps.generate()
 
-    def _configure_cmake(self):
-        cmake = CMake(self)
-        cmake.definitions["CPPZMQ_BUILD_TESTS"] = False
-        cmake.configure()
-        return cmake
+	def build(self):
+		apply_conandata_patches(self)
+		cmake = CMake(self)
+		cmake.configure()
+		cmake.build()
 
-    def _patch_sources(self):
-        for patch in self.conan_data["patches"][self.version]:
-            tools.patch(**patch)
+	def package(self):
+		copy(self, pattern="LICENSE", dst="licenses", src=self.source_folder)
+		cmake = CMake(self)
+		cmake.install()
 
-    def build(self):
-        self._patch_sources()
-        cmake = self._configure_cmake()
-        cmake.build()
+	def compatibility(self):
+		self.info.clear()
 
-    def package(self):
-        self.copy(pattern="LICENSE", dst="licenses", src=self._source_subfolder)
-        cmake = self._configure_cmake()
-        cmake.install()
 
-    def package_id(self):
-        self.info.header_only()
+	def package_info(self):
+		self.cpp_info.set_property("cmake_file_name", "cppzmq")
+		self.cpp_info.set_property("cmake_target_name", "cppzmq")
+		self.cpp_info.bindirs = []
+		self.cpp_info.libdirs = []

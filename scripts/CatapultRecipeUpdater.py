@@ -3,12 +3,12 @@
 import argparse
 import asyncio
 import re
-import semver
 import subprocess
 import tempfile
 import yaml
 
 from aiohttp import ClientSession
+from conan.tools.scm import Version
 from pathlib import Path
 
 CONAN_NEMTECH_REMOTE = 'https://conan.symbol.dev/artifactory/api/conan/catapult'
@@ -27,12 +27,11 @@ REPO_RECIPE_MAP = {'libzmq': 'zeromq'}
 
 def dispatch_subprocess(command_line, cwd=None, handle_error=True):
 	print(' '.join(command_line))
-	result = subprocess.run(command_line, check=False, cwd=cwd, capture_output=True)
+	result = subprocess.run(command_line, check=False, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	if handle_error and 0 != result.returncode:
 		raise subprocess.SubprocessError(f'command failed with exit code {result.returncode}\n{result}')
 
-	output = result.stdout if 0 == result.returncode else result.stderr
-	decode_output = output.decode('utf-8')
+	decode_output = result.stdout.decode('utf-8')
 	if decode_output:
 		print(decode_output)
 
@@ -47,9 +46,7 @@ def update_recipe_version(current_version, new_version, filepath):
 
 
 def initialize_conan():
-	dispatch_subprocess(['conan', 'config', 'init'])
-	dispatch_subprocess(['conan', 'config', 'set', 'general.revisions_enabled=1'])
-	dispatch_subprocess(['conan', 'profile', 'update', 'settings.compiler.libcxx=libstdc++11', 'default'])
+	dispatch_subprocess(['conan', 'profile', 'detect', '--name=default', '--force'])
 	dispatch_subprocess(['conan', 'remote', 'add', '--force', 'nemtech', CONAN_NEMTECH_REMOTE])
 
 
@@ -101,7 +98,7 @@ class CatapultRecipesUpdater:
 		recipe = self.recipe_helper.get_recipe_name(recipe_repo)
 		current_version = await self._get_current_version(recipe)
 		print(f'checking recipe {recipe} {current_version} -> {latest_version}')
-		if semver.compare(latest_version, current_version) > 0:
+		if Version(latest_version) > Version(current_version):
 			print(f'{recipe} has new version: {latest_version}')
 			return recipe, current_version, latest_version
 
@@ -160,13 +157,13 @@ class CatapultRecipesUpdater:
 	async def build_conan_package(self, recipes_versions):
 		await self._execute_conan_package_command(
 			recipes_versions,
-			lambda version, recipe_name: ['conan', 'create', '.', f'{version}@nemtech/stable', '--build=missing', '--remote=nemtech']
+			lambda version, recipe_name: ['conan', 'create', '.', f'--name={recipe_name}', f'--version={version}', '--user=nemtech', '--channel=stable', '--build=missing', '--remote=nemtech']
 		)
 
 	async def upload_conan_package(self, recipes_versions):
 		await self._execute_conan_package_command(
 			recipes_versions,
-			lambda version, recipe_name: ['conan', 'upload', f'{recipe_name}/{version}@nemtech/stable', '--remote=nemtech']
+			lambda version, recipe_name: ['conan', 'upload', f'{recipe_name}/{version}@nemtech/stable', '--remote=nemtech', '--force']
 		)
 
 

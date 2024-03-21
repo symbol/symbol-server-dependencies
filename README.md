@@ -15,12 +15,11 @@ If mongo-c-driver is updated, set the new version in the mongo-cxx-driver ``cona
 
 ## Building
 
-Before you can start building, setup the Conan environment.
+Before you can start building, set up the Conan environment.
 
 ```sh
-conan config init
-conan config set general.revisions_enabled=1
-conan profile update settings.compiler.libcxx=libstdc++11 default
+conan profile detect --name default
+conan remote add nemtech https://conan.symbol.dev/artifactory/api/conan/catapult
 ```
 
 Create the package for the recipe.
@@ -28,7 +27,7 @@ This example uses ``benchmark`` recipe and assumes you are in the ``recipes`` fo
 
 ```sh
 cd benchmark/all
-conan create . 1.7.0@nemtech/stable
+conan create --name benchmark --version 1.8.3 --user nemtech --channel stable .
 cd -
 ```
 
@@ -37,7 +36,7 @@ Here we are uploading the packages to the nemtech remote.
 
 ```sh
 cd benchmark/all
-conan upload benchmark/1.5.3@nemtech/stable -r=nemtech --force
+conan upload benchmark/1.8.3@nemtech/stable -r=nemtech --force
 cd -
 ```
 
@@ -45,7 +44,6 @@ The packages should be created in a specific order, due to dependencies on each 
 * benchmark
 * zeromq
 * cppzmq
-* openssl
 * rocksdb
 * mongo-c-driver
 * mongo-cxx-driver
@@ -60,10 +58,9 @@ The packages should be created in a specific order, due to dependencies on each 
 
 There are several reasons why custom Conan packages were created for Catapult client.
 1. The main reason was to add support rpath in Darwin OS.
-2. Benchmark was updated to get the source from git and prevent benchmark from actually removing cmake files.
+2. Benchmark was updated to prevent benchmark from actually removing cmake files.
 3. Mongo-c has specific changes for Visual Studio and fix the ENABLE_AUTOMATIC_INIT_AND_CLEANUP.
 4. Mongo-cxx has some customization for Visual Studio plus it was copying files instead of using cmake.install() in conanfile.
-5. Openssl has its conanfile cleaned up since we only support 1.1.1 plus rpath fix.
-6. ZeroMQ has rpath support added.
-7. Cppzmq has cmakelist file which was incorrect and this was fix.
-8. RocksDB has rpath support added.
+5. ZeroMQ has rpath support added.
+6. Cppzmq has cmakelist file which was incorrect and this was fix.
+7. RocksDB has rpath support added.
