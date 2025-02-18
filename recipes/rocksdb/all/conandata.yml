@@ -1,4 +1,4 @@
 sources:
-  9.10.0:
-    url: https://github.com/facebook/rocksdb/archive/v9.10.0.tar.gz
-    sha256: fdccab16133c9d927a183c2648bcea8d956fb41eb1df2aacaa73eb0b95e43724
+  9.8.4:
+    url: https://github.com/facebook/rocksdb/archive/v9.8.4.tar.gz
+    sha256: 361aeaa07ceee64fb69c49daa94339db93a4200b321e20bd61c1fe311f8ba12b
