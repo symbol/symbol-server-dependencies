@@ -3,7 +3,7 @@ project(test_package)
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
-find_package(benchmark 1.9.1 EXACT REQUIRED)
+find_package(benchmark 1.9.2 EXACT REQUIRED)
 
 add_executable(${PROJECT_NAME} test_package.cpp)
 target_link_libraries(${PROJECT_NAME} benchmark::benchmark)
