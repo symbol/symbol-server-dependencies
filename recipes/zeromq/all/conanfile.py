@@ -58,6 +58,8 @@ class ZeroMQConan(ConanFile):
 		tc.cache_variables["WITH_DOCS"] = False
 		tc.cache_variables["WITH_DOC"] = False
 
+		tc.cache_variables["CMAKE_POLICY_VERSION_MINIMUM"] = 3.5
+
 		if "Macos" == self.settings.os:
 			tc.blocks["rpath"].skip_rpath = False
 
