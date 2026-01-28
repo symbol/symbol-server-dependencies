@@ -20,14 +20,13 @@ class MongoCDriverConan(ConanFile):
 	settings = "arch", "build_type", "compiler", "os"
 	options = {
 		"shared": [True, False],
-		"fPIC": [True, False],
-		"enable_automatic_init_and_cleanup": [True, False]
+		"fPIC": [True, False]
 	}
-	default_options = {"shared": True, "fPIC": True, "enable_automatic_init_and_cleanup": False}
+	default_options = {"shared": True, "fPIC": True}
 
 	def requirements(self):
 		if self.settings.os == "Linux":
-			self.requires("openssl/[^3.4]")
+			self.requires("openssl/[^3]")
 
 	def layout(self):
 		cmake_layout(self, src_folder="src")
@@ -51,10 +50,11 @@ class MongoCDriverConan(ConanFile):
 
 		tc.cache_variables["ENABLE_TESTS"] = "OFF"
 		tc.cache_variables["ENABLE_EXAMPLES"] = "OFF"
-		tc.cache_variables["ENABLE_AUTOMATIC_INIT_AND_CLEANUP"] = "ON" if self.options.enable_automatic_init_and_cleanup else "OFF"
+		tc.cache_variables["ENABLE_MONGOC"] = "ON"
 		tc.cache_variables["ENABLE_BSON"] = "ON"
 		tc.cache_variables["ENABLE_SASL"] = "OFF"
 		tc.cache_variables["ENABLE_STATIC"] = "OFF" if self.options.shared else "ON"
+		tc.cache_variables["ENABLE_SHARED"] = "ON" if self.options.shared else "OFF"
 		tc.cache_variables["ENABLE_SHM_COUNTERS"] = "OFF"
 		tc.cache_variables["ENABLE_SNAPPY"] = "OFF"
 		tc.cache_variables["ENABLE_SRV"] = "OFF"
@@ -94,35 +94,33 @@ class MongoCDriverConan(ConanFile):
 		return os.path.join("lib", "cmake")
 
 	def package_info(self):
-		mongoc_target = "mongoc_shared" if self.options.shared else "mongoc_static"
-		self.cpp_info.set_property("cmake_file_name", "mongoc-1.0")
-		self.cpp_info.set_property("cmake_target_name", f"mongo::{mongoc_target}")
+		version_major = str(Version(self.version).major)
+		cmake_name = "mongoc"
 
-		# mongoc
-		self.cpp_info.components["mongoc"].set_property("cmake_file_name", "libmongoc-1.0")
-		self.cpp_info.components["mongoc"].set_property("cmake_target_name", f"mongo::{mongoc_target}")
-		self.cpp_info.components["mongoc"].set_property("pkg_config_name", "libmongoc-1.0" if self.options.shared else "libmongoc-static-1.0")
+		self.cpp_info.set_property("cmake_file_name", cmake_name)
+		lib_type = "shared" if self.options.shared else "static"
+		self.cpp_info.set_property("cmake_target_name", f"mongo::{cmake_name}_{lib_type}")
+		self.cpp_info.set_property("cmake_target_aliases", ["bson", f"bson::bson_{lib_type}"])
 
-		self.cpp_info.components["mongoc"].builddirs.append(self._module_subfolder)
+		for component in ["mongoc", "bson"]:
+			target = f"{component}_{lib_type}"
+			self.cpp_info.components[component].set_property("cmake_target_name", component)
+			self.cpp_info.components[component].set_property("cmake_target_aliases", [target, f"mongo::{target}", f"{component}::{lib_type}"])
+			self.cpp_info.components[component].set_property("cmake_file_name", f"{component}{version_major}")
 
-		self.cpp_info.components["mongoc"].includedirs = [os.path.join("include", "libmongoc-1.0")]
-		self.cpp_info.components["mongoc"].libs = ["mongoc-1.0" if self.options.shared else "mongoc-static-1.0"]
+			lib_type_suffix = '' if self.options.shared else '-static'
+			self.cpp_info.components[component].set_property("pkg_config_name", f"{component}{version_major}{lib_type_suffix}")
 
+			include_subdir = f"{component}-{self.version}"
+			self.cpp_info.components[component].includedirs = [os.path.join("include", include_subdir)]
 
-		# bson
-		bson_target = "bson_shared" if self.options.shared else "bson_static"
-		self.cpp_info.components["bson"].set_property("cmake_file_name", "libbson-1.0")
-		self.cpp_info.components["bson"].set_property("cmake_target_name", f"mongo::{bson_target}")
-		self.cpp_info.components["bson"].set_property("pkg_config_name", "libbson-1.0" if self.options.shared else "libbson-static-1.0")
+			lib = f"{component}{version_major}"
+			self.cpp_info.components[component].libs = [lib]
 
-		self.cpp_info.components["bson"].builddirs.append(self._module_subfolder)
-
-		self.cpp_info.components["bson"].includedirs = [os.path.join("include", "libbson-1.0")]
-		self.cpp_info.components["bson"].libs = ["bson-1.0" if self.options.shared else "bson-static-1.0"]
+		self.cpp_info.components["mongoc"].requires = ["bson"]
 		if not self.options.shared:
 			self.cpp_info.components["bson"].defines = ["BSON_STATIC"]
 		if self.settings.os in ["Linux", "FreeBSD"]:
 			self.cpp_info.components["bson"].system_libs = ["m", "pthread", "rt"]
 		elif self.settings.os == "Windows":
 			self.cpp_info.components["bson"].system_libs = ["ws2_32"]
-
