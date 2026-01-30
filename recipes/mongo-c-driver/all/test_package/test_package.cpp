@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <bson/bson.h>
 #include <mongoc/mongoc.h>
 
 int main()

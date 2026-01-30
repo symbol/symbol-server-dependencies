@@ -20,7 +20,7 @@ class MongoCxxConan(ConanFile):
 	default_options = {"shared": True}
 
 	def requirements(self):
-		self.requires("mongo-c-driver/[>=1.30 <2.0]@nemtech/stable", transitive_libs=True, run=True)
+		self.requires("mongo-c-driver/[>=2 <3.0]@nemtech/stable", transitive_libs=True, run=True)
 
 	def layout(self):
 		cmake_layout(self, src_folder="src")
@@ -44,6 +44,7 @@ class MongoCxxConan(ConanFile):
 		tc.cache_variables["CMAKE_CXX_STANDARD"] = "17"
 		tc.cache_variables["BUILD_VERSION"] = self.version
 		tc.cache_variables["ENABLE_TESTS"] = False
+		tc.cache_variables["CMAKE_PREFIX_PATH"] = self.dependencies["mongo-c-driver"].package_folder
 		if is_msvc(self):
 			tc.cache_variables["CMAKE_CXX_FLAGS"] = "/Zc:__cplusplus /EHsc"
 

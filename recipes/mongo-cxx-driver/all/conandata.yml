@@ -1,4 +1,4 @@
 sources:
-  4.0.0:
-    url: https://github.com/mongodb/mongo-cxx-driver/archive/r4.0.0.tar.gz
-    sha256: 966e46c14fc02162016a6a4b02d0707a722f296b403483f32e73592474f3f638
+  4.1.4:
+    url: https://github.com/mongodb/mongo-cxx-driver/archive/r4.1.4.tar.gz
+    sha256: ec86084eadb8d32e3601dbd6408107bd1a581332b8a52aaa094a3b02d9f25858
