@@ -1,4 +1,4 @@
 sources:
-  10.6.2:
-    url: https://github.com/facebook/rocksdb/archive/v10.6.2.tar.gz
-    sha256: 14c619b8a10f994aa6061bd12182b20270c4c27c2f3d9cb4376d57f3cd1c5d7f
+  11.8.1:
+    url: https://github.com/facebook/rocksdb/archive/v11.8.1.tar.gz
+    sha256: 618d9726a7cb1cf4ce034f4cdca49de98aa64867dda06b91371a791ae8921aff
