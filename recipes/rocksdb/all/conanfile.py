@@ -57,7 +57,7 @@ class RocksDB(ConanFile):
 
 			del self.options.fPIC
 
-		minimal_cpp_standard = "17"
+		minimal_cpp_standard = "20"
 		if self.settings.compiler.cppstd:
 			check_min_cppstd(self, minimal_cpp_standard)
 
