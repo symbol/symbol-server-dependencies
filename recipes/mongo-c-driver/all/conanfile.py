@@ -26,7 +26,7 @@ class MongoCDriverConan(ConanFile):
 
 	def requirements(self):
 		if self.settings.os == "Linux":
-			self.requires("openssl/[^3]")
+			self.requires("openssl/[^4]")
 
 	def layout(self):
 		cmake_layout(self, src_folder="src")
@@ -61,6 +61,9 @@ class MongoCDriverConan(ConanFile):
 		tc.cache_variables["ENABLE_ZLIB"] = "OFF"
 		tc.cache_variables["ENABLE_ZSTD"] = "OFF"
 		tc.cache_variables["ENABLE_MONGODB_AWS_AUTH"] = "OFF"
+
+		# needed for openssl 4
+		tc.cache_variables["HAVE_ASN1_STRING_GET0_DATA"] = 1
 
 		if "Linux" == self.settings.os:
 			tc.cache_variables["CMAKE_SHARED_LINKER_FLAGS"] = "-ldl"
