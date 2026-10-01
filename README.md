@@ -27,7 +27,7 @@ This example uses ``benchmark`` recipe and assumes you are in the ``recipes`` fo
 
 ```sh
 cd benchmark/all
-conan create --name benchmark --version 1.8.3 --user nemtech --channel stable .
+conan create --name benchmark --version 1.8.3 --user nemtech --channel stable -s=compiler.cppstd=20 .
 cd -
 ```
 

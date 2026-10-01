@@ -68,15 +68,20 @@ class MongoCxxConan(ConanFile):
 		cmake.install()
 
 	def package_info(self):
+		# mongo-cxx-driver >= 4.4.0 appends the ABI version (MONGOCXX_SOVERSION / BSONCXX_SOVERSION) to the library
+		# and pkg-config basenames - libmongocxx1.so, libbsoncxx1.so, libmongocxx1.pc, libbsoncxx1.pc
+		abi_version = "1" if Version(self.version) >= "4.4.0" else ""
+		lib_type_suffix = "" if self.options.shared else "-static"
+
 		mongocxx_target = "mongocxx_shared" if self.options.shared else "mongocxx_static"
 		self.cpp_info.set_property("cmake_file_name", "mongocxx")
 		self.cpp_info.set_property("cmake_target_name", f"mongo::{mongocxx_target}")
 
 		# mongocxx
 		self.cpp_info.components["mongocxx"].set_property("cmake_target_name", f"mongo::{mongocxx_target}")
-		self.cpp_info.components["mongocxx"].set_property("pkg_config_name", "libmongocxx" if self.options.shared else "libmongocxx-static")
+		self.cpp_info.components["mongocxx"].set_property("pkg_config_name", f"libmongocxx{abi_version}{lib_type_suffix}")
 
-		self.cpp_info.components["mongocxx"].libs = ["mongocxx" if self.options.shared else "mongocxx-static"]
+		self.cpp_info.components["mongocxx"].libs = [f"mongocxx{abi_version}{lib_type_suffix}"]
 		if not self.options.shared:
 			self.cpp_info.components["mongocxx"].defines.append("MONGOCXX_STATIC")
 		self.cpp_info.components["mongocxx"].requires = ["mongo-c-driver::mongoc", "bsoncxx"]
@@ -87,10 +92,10 @@ class MongoCxxConan(ConanFile):
 		# bsoncxx
 		bsoncxx_target = "bsoncxx_shared" if self.options.shared else "bsoncxx_static"
 		self.cpp_info.components["bsoncxx"].set_property("cmake_target_name", f"mongo::{bsoncxx_target}")
-		self.cpp_info.components["bsoncxx"].set_property("pkg_config_name", "libbsoncxx" if self.options.shared else "libbsoncxx-static")
+		self.cpp_info.components["bsoncxx"].set_property("pkg_config_name", f"libbsoncxx{abi_version}{lib_type_suffix}")
 
 		# The header files are in v_noabi -  https://mongocxx.org/mongocxx-v3/tutorial/
-		self.cpp_info.components["bsoncxx"].libs = ["bsoncxx" if self.options.shared else "bsoncxx-static"]
+		self.cpp_info.components["bsoncxx"].libs = [f"bsoncxx{abi_version}{lib_type_suffix}"]
 
 		self.cpp_info.components["bsoncxx"].includedirs.extend([os.path.join("include", "bsoncxx", "v_noabi")])
 		if not self.options.shared:
