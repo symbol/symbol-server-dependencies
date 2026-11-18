@@ -1,4 +1,4 @@
 sources:
-  11.8.1:
-    url: https://github.com/facebook/rocksdb/archive/v11.8.1.tar.gz
-    sha256: 618d9726a7cb1cf4ce034f4cdca49de98aa64867dda06b91371a791ae8921aff
+  11.13.2:
+    url: https://github.com/facebook/rocksdb/archive/v11.13.2.tar.gz
+    sha256: 6f12f408c4876175b1de73cfefcdd1baf0001ad8d799c1a09320d96e4fd213b5
